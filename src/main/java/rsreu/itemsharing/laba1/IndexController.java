@@ -27,8 +27,8 @@ public class IndexController {
     public ModelAndView index() {
         ModelAndView modelAndView = new ModelAndView();
         modelAndView.setViewName("connection");
-        modelAndView.addObject("info", getConnectionInfoByDriverManager());
-//        modelAndView.addObject("info", getConnectionInfoBySpringDataSource());
+//        modelAndView.addObject("info", getConnectionInfoByDriverManager());
+        modelAndView.addObject("info", getConnectionInfoBySpringDataSource());
         return modelAndView;
     }
 
