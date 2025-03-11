@@ -60,7 +60,7 @@
 
 
 <h3>Динамический запрос</h3>
-<p>select * from \"user\"</p>
+<p>select * from users</p>
 <form method="post" th:action="@{/lab2/findSmthUsers}">
     <input id="sql" placeholder="Enter SQL" type="text" th:name="sql"/>
     <input type="submit" value="Find User">
@@ -77,6 +77,33 @@
     </thead>
     <tbody>
     <tr th:each="i : ${findedSmthUsers}">
+        <td th:text="${i.passportNum}">PassportNum</td>
+        <td th:text="${i.fullName}">FullName</td>
+        <td th:text="${i.phone}">Phone</td>
+        <td th:text="${i.email}">Email</td>
+        <td th:text="${i.address}">Address</td>
+    </tr>
+    </tbody>
+</table>
+
+<h3>Динамический запрос 2</h3>
+<form method="post" th:action="@{/lab2/findSmthUsersByNameByCity}">
+    <input id="fio" placeholder="Enter FIO" type="text" th:name="fio"/>
+    <input id="city" placeholder="Enter city" type="text" th:name="city"/>
+    <input type="submit" value="Find User">
+</form>
+<table class="table table-striped caption-top">
+    <thead>
+    <tr>
+        <th>PassportNum</th>
+        <th>FullName</th>
+        <th>Phone</th>
+        <th>Email</th>
+        <th>Address</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="i : ${findedSmthUsersByNameByCity}">
         <td th:text="${i.passportNum}">PassportNum</td>
         <td th:text="${i.fullName}">FullName</td>
         <td th:text="${i.phone}">Phone</td>

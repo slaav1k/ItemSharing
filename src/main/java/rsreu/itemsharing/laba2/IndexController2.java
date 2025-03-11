@@ -121,5 +121,47 @@ public class IndexController2 {
         return users;
     }
 
+    @PostMapping("/lab2/findSmthUsersByNameByCity")
+    public String findSmthUsersByNameByCity(@RequestParam String fio, String city, Model model) {
+        model.addAttribute("findedSmthUsersByNameByCity", findSmthUsersByNameByCity(fio, city));
+        return "statement";
+    }
+
+    private List<User> findSmthUsersByNameByCity(String FIO, String city) {
+        List<User> users = new ArrayList<>();
+
+        try (Connection connection = DriverManager.getConnection(
+                "jdbc:postgresql://localhost:5432/ItemSharingBD",
+                "postgres",
+                "123"
+        )) {
+
+            PreparedStatement statement = connection.prepareStatement("SELECT * FROM users \n" +
+                                                            "WHERE full_name ILIKE COALESCE(?, full_name) \n" +
+                                                            "AND address ILIKE COALESCE(?, address)");
+
+            statement.setString(1, FIO != null ? "%" + FIO + "%" : null);
+            statement.setString(2, city != null ? "%" + city + "%" : null);
+
+            ResultSet resultSet = statement.executeQuery();
+
+            while (resultSet.next()) {
+                long passportNum = resultSet.getLong("passport_num");
+                String fullName = resultSet.getString("full_name");
+                String phone = resultSet.getString("phone");
+                String email = resultSet.getString("email");
+                String address = resultSet.getString("address");
+
+                users.add(new User(passportNum, fullName, phone, email, address));
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return Collections.emptyList();
+        }
+        return users;
+
+    }
+
 
 }
