@@ -1,37 +1,62 @@
 package rsreu.itemsharing.entities;
 
+import jakarta.persistence.*;
 import java.time.LocalDate;
 
+@Entity
+@Table(name = "review")
 public class Review {
-    private Long reviewed;
-    private String reviewer;
+
+    @EmbeddedId
+    private ReviewId id;
+
+    @ManyToOne
+    @MapsId("reviewed")
+    @JoinColumn(name = "reviewed", nullable = false)
+    private User reviewed;
+
+    @ManyToOne
+    @MapsId("reviewer")
+    @JoinColumn(name = "reviewer", nullable = false)
+    private User reviewer;
+
+    @Column(name = "comment", nullable = false, length = 255)
     private String comment;
+
+    @Column(name = "score", nullable = false)
     private int score;
-    private LocalDate date;
 
     public Review() {}
 
-    public Review(Long reviewed, String reviewer, String comment, int score, LocalDate date) {
+    public Review(ReviewId id, User reviewed, User reviewer, String comment, int score) {
+        this.id = id;
         this.reviewed = reviewed;
         this.reviewer = reviewer;
         this.comment = comment;
         this.score = score;
-        this.date = date;
     }
 
-    public Long getReviewed() {
+    public ReviewId getId() {
+        return id;
+    }
+
+    public void setId(ReviewId id) {
+        this.id = id;
+    }
+
+    public User getReviewed() {
         return reviewed;
     }
 
-    public void setReviewed(Long reviewed) {
+    public void setReviewed(User reviewed) {
         this.reviewed = reviewed;
     }
 
-    public String getReviewer() {
+    public User getReviewer() {
         return reviewer;
     }
 
-    public void setReviewer(String reviewer) {
+    public void setReviewer(User reviewer) {
         this.reviewer = reviewer;
     }
 
@@ -50,14 +75,4 @@ public class Review {
     public void setScore(int score) {
         this.score = score;
     }
-
-    public LocalDate getDate() {
-        return date;
-    }
-
-    public void setDate(LocalDate date) {
-        this.date = date;
-    }
-
-
 }

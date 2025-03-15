@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
-import rsreu.itemsharing.laba2.entities.User;
+import rsreu.itemsharing.laba2.entities.UserLab2;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -25,8 +25,8 @@ public class IndexController2 {
         return mav;
     }
 
-    private List<User> getUsers() {
-        List<User> users = new ArrayList<>();
+    private List<UserLab2> getUsers() {
+        List<UserLab2> users = new ArrayList<>();
 
         try (Connection connection = DriverManager.getConnection(
                 "jdbc:postgresql://localhost:5432/ItemSharingBD",
@@ -43,7 +43,7 @@ public class IndexController2 {
                 String email = resultSet.getString("email");
                 String address = resultSet.getString("address");
 
-                users.add(new User(passportNum, fullName, phone, email, address));
+                users.add(new UserLab2(passportNum, fullName, phone, email, address));
             }
 
         } catch (SQLException e) {
@@ -58,8 +58,8 @@ public class IndexController2 {
         return "statement";
     }
 
-    private List<User> findUsers(String phoneToSearch) {
-        List<User> users = new ArrayList<>();
+    private List<UserLab2> findUsers(String phoneToSearch) {
+        List<UserLab2> users = new ArrayList<>();
 
         try (Connection connection = DriverManager.getConnection(
                 "jdbc:postgresql://localhost:5432/ItemSharingBD",
@@ -77,7 +77,7 @@ public class IndexController2 {
                 String email = resultSet.getString("email");
                 String address = resultSet.getString("address");
 
-                users.add(new User(passportNum, fullName, phone, email, address));
+                users.add(new UserLab2(passportNum, fullName, phone, email, address));
             }
 
         } catch (SQLException e) {
@@ -93,8 +93,8 @@ public class IndexController2 {
         return "statement";
     }
 
-    private List<User> findSmthUsers(String sql) {
-        List<User> users = new ArrayList<>();
+    private List<UserLab2> findSmthUsers(String sql) {
+        List<UserLab2> users = new ArrayList<>();
 
         try (Connection connection = DriverManager.getConnection(
                 "jdbc:postgresql://localhost:5432/ItemSharingBD",
@@ -112,7 +112,7 @@ public class IndexController2 {
                 String email = resultSet.getString("email");
                 String address = resultSet.getString("address");
 
-                users.add(new User(passportNum, fullName, phone, email, address));
+                users.add(new UserLab2(passportNum, fullName, phone, email, address));
             }
 
         } catch (SQLException e) {
@@ -127,8 +127,8 @@ public class IndexController2 {
         return "statement";
     }
 
-    private List<User> findSmthUsersByNameByCity(String FIO, String city) {
-        List<User> users = new ArrayList<>();
+    private List<UserLab2> findSmthUsersByNameByCity(String FIO, String city) {
+        List<UserLab2> users = new ArrayList<>();
 
         try (Connection connection = DriverManager.getConnection(
                 "jdbc:postgresql://localhost:5432/ItemSharingBD",
@@ -152,7 +152,7 @@ public class IndexController2 {
                 String email = resultSet.getString("email");
                 String address = resultSet.getString("address");
 
-                users.add(new User(passportNum, fullName, phone, email, address));
+                users.add(new UserLab2(passportNum, fullName, phone, email, address));
             }
 
         } catch (SQLException e) {

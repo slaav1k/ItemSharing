@@ -1,33 +1,30 @@
 package rsreu.itemsharing.entities;
 
+import jakarta.persistence.*;
+
+@Entity
+@Table(name = "item_attributes")
 public class ItemAttribute {
-    private String item;
-    private Long attribute;
+
+    @EmbeddedId
+    private ItemAttributeId id;
+
+    @Column(name = "value", nullable = false, length = 255)
     private String value;
 
-    public ItemAttribute() {
-    }
+    public ItemAttribute() {}
 
-    public ItemAttribute(String item, Long attribute, String value) {
-        this.item = item;
-        this.attribute = attribute;
+    public ItemAttribute(ItemAttributeId id, String value) {
+        this.id = id;
         this.value = value;
     }
 
-    public String getItem() {
-        return item;
+    public ItemAttributeId getId() {
+        return id;
     }
 
-    public void setItem(String item) {
-        this.item = item;
-    }
-
-    public Long getAttribute() {
-        return attribute;
-    }
-
-    public void setAttribute(Long attribute) {
-        this.attribute = attribute;
+    public void setId(ItemAttributeId id) {
+        this.id = id;
     }
 
     public String getValue() {

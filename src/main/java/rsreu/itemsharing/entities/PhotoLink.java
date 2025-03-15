@@ -1,22 +1,31 @@
 package rsreu.itemsharing.entities;
 
+import jakarta.persistence.*;
+
+@Entity
+@Table(name = "photo_links")
 public class PhotoLink {
-    private Long PhotoId;
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "photo_id")
+    private Long photoId;
+
+    @Column(name = "url")
     private String url;
 
     public PhotoLink() {}
 
-    public PhotoLink(Long PhotoId, String url) {
-        this.PhotoId = PhotoId;
+    public PhotoLink(String url) {
         this.url = url;
     }
 
     public Long getPhotoId() {
-        return PhotoId;
+        return photoId;
     }
 
     public void setPhotoId(Long photoId) {
-        PhotoId = photoId;
+        this.photoId = photoId;
     }
 
     public String getUrl() {

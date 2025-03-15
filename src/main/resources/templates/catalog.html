@@ -24,6 +24,7 @@
         <th>Maker</th>
         <th>Model</th>
         <th>ReleaseYear</th>
+        <th>Photo URL</th>
     </tr>
     </thead>
     <tbody>
@@ -42,8 +43,19 @@
         <td th:text="${i.maker}">Maker</td>
         <td th:text="${i.model}">Model</td>
         <td th:text="${i.releaseYear}">ReleaseYear</td>
+        <td>
+            <ul>
+                <li th:each="url : ${photoUrlsMap[i.itemId]}" th:text="${url}">Photo URL</li>
+                <li th:each="url : ${photoUrlsMap[i.itemId]}" >
+                    <img th:src="@{'/images/' + ${url}}" alt="Photo" style="max-width: 200px;">
+                </li>
+            </ul>
+        </td>
     </tr>
+
     </tbody>
+
+
 </table>
 </body>
 </html>

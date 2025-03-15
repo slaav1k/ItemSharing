@@ -1,22 +1,67 @@
 package rsreu.itemsharing.entities;
 
+import jakarta.persistence.*;
+
+import java.util.ArrayList;
+import java.util.List;
+
+@Entity
+@Table(name = "item") // Соответствие таблице в БД
 public class Item {
+
+    @Id
+    @Column(name = "item_id", nullable = false, length = 100)
     private String itemId;
-    private long owner;
+
+    @ManyToOne
+    @JoinColumn(name = "owner", nullable = false)
+    private User owner;
+
+    @Column(name = "name", nullable = false, length = 50)
     private String name;
-    private long category;
+
+    @ManyToOne
+    @JoinColumn(name = "category", nullable = false)
+    private Category category;
+
+    @Column(name = "description", nullable = false, length = 255)
     private String description;
+
+    @Column(name = "address", nullable = false, length = 255)
     private String address;
+
+    @Column(name = "is_available", nullable = false)
     private boolean isAvailable;
+
+    @Column(name = "sizes", nullable = false, length = 255)
     private String sizes;
+
+    @Column(name = "weight", nullable = false)
     private double weight;
+
+    @Column(name = "color", nullable = false, length = 255)
     private String color;
+
+    @Column(name = "material", nullable = false, length = 255)
     private String material;
+
+    @Column(name = "maker", nullable = false, length = 255)
     private String maker;
+
+    @Column(name = "model", nullable = false, length = 255)
     private String model;
+
+    @Column(name = "release_year", nullable = false)
     private long releaseYear;
 
-    public Item(String itemId, long owner, String name, long category, String description, String address, boolean isAvailable, String sizes, double weight, String color, String material, String maker, String model, long releaseYear) {
+    @OneToMany(mappedBy = "item")
+    private List<ItemPhotoLink> itemPhotoLinks = new ArrayList<>();
+
+    public Item() {}
+
+    public Item(String itemId, User owner, String name, Category category, String description, String address,
+                boolean isAvailable, String sizes, double weight, String color, String material,
+                String maker, String model, long releaseYear) {
         this.itemId = itemId;
         this.owner = owner;
         this.name = name;
@@ -33,8 +78,6 @@ public class Item {
         this.releaseYear = releaseYear;
     }
 
-    public Item() {}
-
     public String getItemId() {
         return itemId;
     }
@@ -43,11 +86,11 @@ public class Item {
         this.itemId = itemId;
     }
 
-    public long getOwner() {
+    public User getOwner() {
         return owner;
     }
 
-    public void setOwner(long owner) {
+    public void setOwner(User owner) {
         this.owner = owner;
     }
 
@@ -59,11 +102,11 @@ public class Item {
         this.name = name;
     }
 
-    public long getCategory() {
+    public Category getCategory() {
         return category;
     }
 
-    public void setCategory(long category) {
+    public void setCategory(Category category) {
         this.category = category;
     }
 
@@ -145,5 +188,13 @@ public class Item {
 
     public void setReleaseYear(long releaseYear) {
         this.releaseYear = releaseYear;
+    }
+
+    public List<ItemPhotoLink> getItemPhotoLinks() {
+        return itemPhotoLinks;
+    }
+
+    public void setItemPhotoLinks(List<ItemPhotoLink> itemPhotoLinks) {
+        this.itemPhotoLinks = itemPhotoLinks;
     }
 }

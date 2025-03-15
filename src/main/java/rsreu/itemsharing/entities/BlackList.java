@@ -1,34 +1,59 @@
 package rsreu.itemsharing.entities;
 
+import jakarta.persistence.*;
 import java.time.LocalDate;
 
+@Entity
+@Table(name = "blacklist")
 public class BlackList {
-    private Long blockedUser;
-    private Long blockedByUser;
+
+    @EmbeddedId
+    private BlackListId id;
+
+    @ManyToOne
+    @MapsId("blockedUser")
+    @JoinColumn(name = "blocked_user", nullable = false)
+    private User blockedUserEntity;
+
+    @ManyToOne
+    @MapsId("blockedByUser")
+    @JoinColumn(name = "blocked_by_user", nullable = false)
+    private User blockedByUserEntity;
+
+    @Column(name = "date", nullable = false)
     private LocalDate date;
 
     public BlackList() {}
 
-    public BlackList(Long blockedUser, Long blockedByUser, LocalDate date) {
-        this.blockedUser = blockedUser;
-        this.blockedByUser = blockedByUser;
+    public BlackList(BlackListId id, User blockedUserEntity, User blockedByUserEntity, LocalDate date) {
+        this.id = id;
+        this.blockedUserEntity = blockedUserEntity;
+        this.blockedByUserEntity = blockedByUserEntity;
         this.date = date;
     }
 
-    public Long getBlockedUser() {
-        return blockedUser;
+    public BlackListId getId() {
+        return id;
     }
 
-    public void setBlockedUser(Long blockedUser) {
-        this.blockedUser = blockedUser;
+    public void setId(BlackListId id) {
+        this.id = id;
     }
 
-    public Long getBlockedByUser() {
-        return blockedByUser;
+    public User getBlockedUserEntity() {
+        return blockedUserEntity;
     }
 
-    public void setBlockedByUser(Long blockedByUser) {
-        this.blockedByUser = blockedByUser;
+    public void setBlockedUserEntity(User blockedUserEntity) {
+        this.blockedUserEntity = blockedUserEntity;
+    }
+
+    public User getBlockedByUserEntity() {
+        return blockedByUserEntity;
+    }
+
+    public void setBlockedByUserEntity(User blockedByUserEntity) {
+        this.blockedByUserEntity = blockedByUserEntity;
     }
 
     public LocalDate getDate() {
