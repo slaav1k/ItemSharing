@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Statement</title>
+    <link rel="stylesheet" th:href="@{/webjars/bootstrap/5.0.0/css/bootstrap.min.css}" />
+</head>
+<body>
+
+<h2>Использование Statement</h2>
+
+<h3>Статический запрос</h3>
+<table class="table table-striped caption-top">
+    <thead>
+    <tr>
+        <th>PassportNum</th>
+        <th>FullName</th>
+        <th>Phone</th>
+        <th>Email</th>
+        <th>Address</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="i : ${users}">
+        <td th:text="${i.passportNum}">PassportNum</td>
+        <td th:text="${i.fullName}">FullName</td>
+        <td th:text="${i.phone}">Phone</td>
+        <td th:text="${i.email}">Email</td>
+        <td th:text="${i.address}">Address</td>
+    </tr>
+    </tbody>
+</table>
+
+
+<h3>Параметрический запрос</h3>
+<form method="post" th:action="@{/lab2/findUsers}">
+    <input id="phone" placeholder="Enter Phone" type="text" th:name="phone"/>
+    <input type="submit" value="Find User">
+</form>
+<table class="table table-striped caption-top">
+    <thead>
+    <tr>
+        <th>PassportNum</th>
+        <th>FullName</th>
+        <th>Phone</th>
+        <th>Email</th>
+        <th>Address</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="i : ${findedUsers}">
+        <td th:text="${i.passportNum}">PassportNum</td>
+        <td th:text="${i.fullName}">FullName</td>
+        <td th:text="${i.phone}">Phone</td>
+        <td th:text="${i.email}">Email</td>
+        <td th:text="${i.address}">Address</td>
+    </tr>
+    </tbody>
+</table>
+
+
+<h3>Динамический запрос</h3>
+<p>select * from users</p>
+<form method="post" th:action="@{/lab2/findSmthUsers}">
+    <input id="sql" placeholder="Enter SQL" type="text" th:name="sql"/>
+    <input type="submit" value="Find User">
+</form>
+<table class="table table-striped caption-top">
+    <thead>
+    <tr>
+        <th>PassportNum</th>
+        <th>FullName</th>
+        <th>Phone</th>
+        <th>Email</th>
+        <th>Address</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="i : ${findedSmthUsers}">
+        <td th:text="${i.passportNum}">PassportNum</td>
+        <td th:text="${i.fullName}">FullName</td>
+        <td th:text="${i.phone}">Phone</td>
+        <td th:text="${i.email}">Email</td>
+        <td th:text="${i.address}">Address</td>
+    </tr>
+    </tbody>
+</table>
+
+<h3>Динамический запрос 2</h3>
+<form method="post" th:action="@{/lab2/findSmthUsersByNameByCity}">
+    <input id="fio" placeholder="Enter FIO" type="text" th:name="fio"/>
+    <input id="city" placeholder="Enter city" type="text" th:name="city"/>
+    <input type="submit" value="Find User">
+</form>
+<table class="table table-striped caption-top">
+    <thead>
+    <tr>
+        <th>PassportNum</th>
+        <th>FullName</th>
+        <th>Phone</th>
+        <th>Email</th>
+        <th>Address</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="i : ${findedSmthUsersByNameByCity}">
+        <td th:text="${i.passportNum}">PassportNum</td>
+        <td th:text="${i.fullName}">FullName</td>
+        <td th:text="${i.phone}">Phone</td>
+        <td th:text="${i.email}">Email</td>
+        <td th:text="${i.address}">Address</td>
+    </tr>
+    </tbody>
+</table>
+
+</body>
+</html>
