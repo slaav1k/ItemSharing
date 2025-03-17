@@ -3,6 +3,8 @@ package rsreu.itemsharing.repositories;
 import org.springframework.data.jpa.repository.JpaRepository;
 import rsreu.itemsharing.entities.User;
 
-public interface UserRepository extends JpaRepository<User, Long> {
+import java.util.Optional;
 
+public interface UserRepository extends JpaRepository<User, Long> {
+    Optional<User> findByEmailOrPhone(String email, String phone);
 }

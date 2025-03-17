@@ -1,9 +1,11 @@
 package rsreu.itemsharing.entities;
 
 import jakarta.persistence.*;
+import lombok.Builder;
 
 @Entity
 @Table(name = "users")
+@Builder
 public class User {
 
     @Id
@@ -19,23 +21,35 @@ public class User {
     @Column(name = "email", nullable = false, length = 50)
     private String email;
 
+    @Column(name = "password", nullable = false)
+    private String password;
+
     @Column(name = "address", nullable = false)
     private String address;
 
     public User() {
     }
 
-    public User(long passportNum, String fullName, String phone, String email, String address) {
+    public User(long passportNum, String fullName, String phone, String email, String password, String address) {
         this.passportNum = passportNum;
         this.fullName = fullName;
         this.phone = phone;
         this.email = email;
+        this.password = password;
         this.address = address;
     }
 
     @Override
     public String toString() {
         return fullName;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
     }
 
     public long getPassportNum() {

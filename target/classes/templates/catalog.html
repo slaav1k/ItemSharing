@@ -1,5 +1,8 @@
 <!DOCTYPE html>
-<html lang="en">
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      lang="en">
+
 <head>
     <meta charset="UTF-8">
     <title>ItemSharing</title>
@@ -110,7 +113,7 @@
             <span class="navbar-toggler-icon"></span>
         </button>
         <div class="collapse navbar-collapse" id="navbarNav">
-            <ul class="navbar-nav">
+            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
                 <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                         Категории
@@ -123,9 +126,35 @@
                     </ul>
                 </li>
             </ul>
+
+            <div>
+                <span sec:authorize="isAuthenticated()">
+                        Вы аутентифицированы!
+                </span>
+                <span sec:authorize="isAnonymous()">
+                        Вы не аутентифицированы!
+                </span>
+            </div>
+
+            <!-- Добавляем кнопки входа/выхода в правую часть навигации -->
+            <div class="nav-buttons ms-auto">
+                <span sec:authorize="isAuthenticated()">
+                    <form th:action="@{/logout}" method="post" style="display:inline;">
+                        <button type="submit" class="btn btn-danger">Выход</button>
+                    </form>
+                </span>
+                <span sec:authorize="isAnonymous()">
+                    <form th:action="@{/login}" method="get" style="display:inline;">
+                        <button type="submit" class="btn btn-success">Вход</button>
+                    </form>
+                </span>
+            </div>
         </div>
     </div>
 </nav>
+
+
+
 
 <!-- Основной контент страницы -->
 <div class="container-fluid content">
