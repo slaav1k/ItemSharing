@@ -17,6 +17,7 @@ CREATE TABLE "users" (
     "full_name" VARCHAR(255) NOT NULL,
     "phone" CHAR(11) NOT NULL,
     "email" VARCHAR(50) NOT NULL,
+	"password" VARCHAR(255) NOT NULL,
     "address" VARCHAR(255) NOT NULL,
     PRIMARY KEY("passport_num")
 );
