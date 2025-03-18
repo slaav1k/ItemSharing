@@ -3,9 +3,11 @@ package rsreu.itemsharing.entities;
 import jakarta.persistence.*;
 import lombok.Builder;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Entity
 @Table(name = "users")
-@Builder
 public class User {
 
     @Id
@@ -43,6 +45,29 @@ public class User {
     public String toString() {
         return fullName;
     }
+
+    @OneToMany(mappedBy = "owner", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Item> items = new ArrayList<>();
+
+    @OneToMany(mappedBy = "reviewed", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Review> reviewsReceived = new ArrayList<>();
+
+    public List<Item> getItems() {
+        return items;
+    }
+
+    public void setItems(List<Item> items) {
+        this.items = items;
+    }
+
+    public List<Review> getReviewsReceived() {
+        return reviewsReceived;
+    }
+
+    public void setReviewsReceived(List<Review> reviewsReceived) {
+        this.reviewsReceived = reviewsReceived;
+    }
+
 
     public String getPassword() {
         return password;
