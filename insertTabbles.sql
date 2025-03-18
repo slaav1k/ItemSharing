@@ -824,10 +824,12 @@ INSERT INTO photo_links (photo_id, url) VALUES
 (15, 'items/ITM015.png'),
 (16, 'items/ITM016.png'),
 (17, 'items/ITM017.png'),
-(18, 'items/ITM018.png');
+(18, 'items/ITM018.png'),
+(19, 'items/ITM001_2.jpeg');
 
 INSERT INTO item_photo_links (item_id, photo_id) VALUES
 ('ITM001', 1),
+('ITM001', 19),
 ('ITM002', 2),
 ('ITM003', 3),
 ('ITM004', 4),
