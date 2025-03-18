@@ -130,6 +130,8 @@
             <div>
                 <span sec:authorize="isAuthenticated()">
                         Вы аутентифицированы!
+                    Вы вошли как <span sec:authentication="principal.username"></span>
+<!--                    Вы вошли как <span th:text="${#authentication.principal.passportNum}"></span>-->
                 </span>
                 <span sec:authorize="isAnonymous()">
                         Вы не аутентифицированы!
@@ -140,6 +142,8 @@
             <div class="nav-buttons ms-auto">
                 <span sec:authorize="isAuthenticated()">
                     <form th:action="@{/logout}" method="post" style="display:inline;">
+                        <a th:href="@{/user/{username}(username=${#authentication.principal.username})}" class="btn btn-primary">Профиль</a>
+<!--                        <a th:href="@{'/user/' + #authentication.principal.username}" class="btn btn-primary">Профиль</a>-->
                         <button type="submit" class="btn btn-danger">Выход</button>
                     </form>
                 </span>
