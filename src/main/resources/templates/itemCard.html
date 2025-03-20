@@ -204,6 +204,13 @@
             <p class="card-text"><strong>Модель:</strong> <span th:text="${item.model}">Модель</span></p>
             <p class="card-text"><strong>Год выпуска:</strong> <span th:text="${item.releaseYear}">Год выпуска</span></p>
 
+            <h3 class="mt-4">Дополнительные характеристики</h3>
+            <ul>
+                <li th:each="entry : ${attributes}">
+                    <strong th:text="${entry.key}"></strong>: <span th:text="${entry.value}"></span>
+                </li>
+            </ul>
+
         </div>
     </div>
 

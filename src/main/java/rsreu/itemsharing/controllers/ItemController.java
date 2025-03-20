@@ -5,14 +5,8 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
-import rsreu.itemsharing.entities.Item;
-import rsreu.itemsharing.entities.ItemPhotoLink;
-import rsreu.itemsharing.entities.ItemReview;
-import rsreu.itemsharing.entities.ItemReviewPhotoLink;
-import rsreu.itemsharing.repositories.ItemPhotoLinkRepository;
-import rsreu.itemsharing.repositories.ItemRepository;
-import rsreu.itemsharing.repositories.ItemReviewPhotoLinkRepository;
-import rsreu.itemsharing.repositories.ItemReviewRepository;
+import rsreu.itemsharing.entities.*;
+import rsreu.itemsharing.repositories.*;
 
 import java.util.*;
 
@@ -29,6 +23,12 @@ public class ItemController {
 
     @Autowired
     private ItemReviewRepository itemReviewRepository;
+
+    @Autowired
+    private ItemAttributeRepository itemAttributeRepository;
+
+    @Autowired
+    private AttributeRepository attributeRepository;
 
     @GetMapping("/item/{itemId}")
     public String getItem(@PathVariable("itemId") String itemId, Model model) {
@@ -61,6 +61,21 @@ public class ItemController {
 
         String randomColor = generateRandomColor();
         model.addAttribute("randomColor", randomColor);
+
+        // Загружаем дополнительные атрибуты
+        List<ItemAttribute> itemAttributes = itemAttributeRepository.findById_Item(item.getItemId());
+        Map<String, String> attributeMap = new HashMap<>();
+        for (ItemAttribute itemAttribute : itemAttributes) {
+            Attribute attribute = attributeRepository.findById(itemAttribute.getId().getAttribute()).orElseThrow();
+            AttributeType type = attribute.getType();
+            if (type == AttributeType.ENUM) {
+                attributeMap.put(attribute.getName(), itemAttribute.getValueText());
+            } else {
+                attributeMap.put(attribute.getName(), itemAttribute.getValueNumber().toString());
+            }
+
+        }
+        model.addAttribute("attributes", attributeMap);
 
         return "itemCard";
     }
