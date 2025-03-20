@@ -27,6 +27,8 @@ public class MainWindowController {
     @Autowired
     private CategoryAttributeRepository categoryAttributeRepository;
 
+    @Autowired
+    private AttributeRepository attributeRepository;
 
 //    @GetMapping()
 //    public String catalog(@RequestParam(required = false) Long category,
@@ -102,7 +104,15 @@ public class MainWindowController {
         model.addAttribute("photoUrlsMap", photoUrlsMap);
         model.addAttribute("categories", categoryRepository.findAll());
         if (category != null) {
+            List<CategoryAttribute> categoryAttributes = categoryAttributeRepository.findById_CategoryId(category);
+
+            List<Attribute> attributes = categoryAttributes.stream()
+                    .map(categoryAttribute -> attributeRepository.findByAttributeId(categoryAttribute.getId().getAttributeId()))
+                    .collect(Collectors.toList());
+
+            // Добавляем атрибуты в модель
             model.addAttribute("category", category);
+            model.addAttribute("categoryAttributes", attributes);
         }
 
 

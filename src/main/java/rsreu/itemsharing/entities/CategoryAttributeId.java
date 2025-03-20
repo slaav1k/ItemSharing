@@ -45,4 +45,5 @@ public class CategoryAttributeId implements Serializable {
     public int hashCode() {
         return Objects.hash(categoryId, attributeId);
     }
+
 }

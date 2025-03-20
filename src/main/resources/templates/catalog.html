@@ -174,6 +174,16 @@
     </div>
 </div>
 
+<div th:if="${categoryAttributes != null}">
+    <h3>Атрибуты выбранной категории:</h3>
+    <ul>
+        <li th:each="categoryAttribute : ${categoryAttributes}">
+            <span th:text="${categoryAttribute.name}">Атрибут</span>:
+            <span th:text="${categoryAttribute.type}">Тип атрибута</span>
+        </li>
+    </ul>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.10.2/dist/umd/popper.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/js/bootstrap.min.js"></script>
 </body>
