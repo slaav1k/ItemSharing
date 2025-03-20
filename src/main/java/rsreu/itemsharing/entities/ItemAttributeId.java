@@ -1,12 +1,16 @@
 package rsreu.itemsharing.entities;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 import java.io.Serializable;
 
 @Embeddable
 public class ItemAttributeId implements Serializable {
 
+    @Column(name = "item_id")
     private String item;
+
+    @Column(name = "attribute_id")
     private Long attribute;
 
 
