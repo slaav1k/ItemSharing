@@ -174,15 +174,46 @@
     </div>
 </div>
 
-<div th:if="${categoryAttributes != null}">
-    <h3>Атрибуты выбранной категории:</h3>
-    <ul>
-        <li th:each="categoryAttribute : ${categoryAttributes}">
-            <span th:text="${categoryAttribute.name}">Атрибут</span>:
-            <span th:text="${categoryAttribute.type}">Тип атрибута</span>
-        </li>
-    </ul>
-</div>
+<form method="GET" action="/">
+    <input type="hidden" name="category" th:value="${category}" />
+
+    <div th:if="${categoryAttributes != null}">
+        <h3>Фильтры:</h3>
+
+        <div th:each="attribute : ${categoryAttributes}">
+            <label th:text="${attribute.name}">Атрибут</label>
+
+            <!-- Выпадающий список для ENUM -->
+            <div th:if="${attribute.type.name() == 'ENUM'}">
+                <select name="filters" th:name="${attribute.name}">
+                    <option value="">Не выбрано</option>
+                    <option th:each="value : ${enumValuesMap[attribute.attributeId]}"
+                            th:value="${value}"
+                            th:text="${value}"
+                            th:selected="${value == filters[attribute.name]}">
+                    </option>
+                </select>
+            </div>
+
+            <!-- Поля ввода для NUMBER -->
+            <div th:if="${attribute.type.name() == 'NUMBER'}">
+                <input type="number" th:name="${attribute.name} + '_min'" placeholder="От"
+                       th:value="${filters[attribute.name + '_min']}" />
+                <input type="number" th:name="${attribute.name} + '_max'" placeholder="До"
+                       th:value="${filters[attribute.name + '_max']}" />
+            </div>
+        </div>
+    </div>
+
+    <button type="submit">Применить фильтры</button>
+    <a th:href="@{/?category={category}(category=${category})}">Сбросить фильтры</a>
+
+
+</form>
+
+
+
+
 
 <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.10.2/dist/umd/popper.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/js/bootstrap.min.js"></script>
