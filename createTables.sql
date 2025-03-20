@@ -2,6 +2,9 @@ DROP TABLE IF EXISTS "item_review_photo_links";
 DROP TABLE IF EXISTS "item_photo_links";
 DROP TABLE IF EXISTS "photo_links";
 DROP TABLE IF EXISTS "item_attributes";
+DROP TABLE IF EXISTS "attribute_enum_value";
+DROP TABLE IF EXISTS "category_attribute";
+DROP TABLE IF EXISTS "attribute";
 DROP TABLE IF EXISTS "item_review";
 DROP TABLE IF EXISTS "blacklist";
 DROP TABLE IF EXISTS "review";
@@ -10,7 +13,6 @@ DROP TABLE IF EXISTS "request_status";
 DROP TABLE IF EXISTS "item";
 DROP TABLE IF EXISTS "category";
 DROP TABLE IF EXISTS "users";
-
 
 CREATE TABLE "users" (
     "passport_num" BIGINT NOT NULL,
@@ -101,13 +103,45 @@ CREATE TABLE "item_review" (
     FOREIGN KEY("reviewer") REFERENCES "users"("passport_num")
 );
 
-CREATE TABLE "item_attributes" (
-    "item" VARCHAR(100) NOT NULL,
-    "attribute" BIGINT NOT NULL,
-    "value" VARCHAR(255) NOT NULL,
-    PRIMARY KEY("item", "attribute"),
-    FOREIGN KEY("item") REFERENCES "item"("item_id")
+-- CREATE TABLE "item_attributes" (
+--     "item" VARCHAR(100) NOT NULL,
+--     "attribute" VARCHAR(255) NOT NULL,
+--     "value" VARCHAR(255) NOT NULL,
+--     PRIMARY KEY("item", "attribute"),
+--     FOREIGN KEY("item") REFERENCES "item"("item_id")
+-- );
+
+CREATE TABLE "attribute" (
+    "attribute_id" SERIAL PRIMARY KEY,
+    "name" VARCHAR(100) NOT NULL,
+    "type" VARCHAR(10) CHECK ("type" IN ('ENUM', 'NUMBER'))
 );
+
+CREATE TABLE "category_attribute" (
+    "category_id" BIGINT NOT NULL REFERENCES "category"("category_id"),
+    "attribute_id" BIGINT NOT NULL REFERENCES "attribute"("attribute_id"),
+    PRIMARY KEY ("category_id", "attribute_id")
+);
+
+
+CREATE TABLE "attribute_enum_value" (
+    "attribute_id" BIGINT NOT NULL REFERENCES "attribute"("attribute_id"),
+    "value" VARCHAR(255) NOT NULL,
+    PRIMARY KEY ("attribute_id", "value")
+);
+
+CREATE TABLE "item_attributes" (
+    "item_id" VARCHAR(100) NOT NULL REFERENCES "item"("item_id"),
+    "attribute_id" BIGINT NOT NULL REFERENCES "attribute"("attribute_id"),
+    "value_text" VARCHAR(255),  -- Используется для ENUM
+    "value_number" DOUBLE PRECISION,  -- Используется для NUMBER
+    CHECK (
+        ("value_text" IS NOT NULL AND "value_number" IS NULL) OR 
+        ("value_text" IS NULL AND "value_number" IS NOT NULL)
+    ),
+    PRIMARY KEY ("item_id", "attribute_id")
+);
+
 
 CREATE TABLE "photo_links" (
     "photo_id" BIGINT NOT NULL,
