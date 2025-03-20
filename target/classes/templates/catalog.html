@@ -100,8 +100,6 @@
             }
         }
     </style>
-
-
 </head>
 <body>
 
@@ -109,41 +107,31 @@
 <nav class="navbar navbar-expand-lg navbar-light bg-light">
     <div class="container-fluid">
         <a class="navbar-brand" href="#">ItemSharing</a>
+
+        <!-- Форма фильтрации категорий, расположенная в навигационной панели -->
+        <form class="d-flex ms-3" method="get" th:action="@{/}">
+            <div class="form-group">
+                <select name="category" id="category" class="form-control" onchange="this.form.submit()">
+                    <option value="" disabled selected>Выберите категорию</option>
+                    <option value="" th:selected="${category == null}">Все категории</option> <!-- Элемент "Все категории" -->
+                    <option th:each="cat : ${categories}" th:value="${cat.categoryId}" th:text="${cat.name}"
+                            th:selected="${cat.categoryId == category}"></option>
+                </select>
+            </div>
+        </form>
+
+        <!-- Кнопка для раскрытия меню на мобильных устройствах -->
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
         </button>
+
+        <!-- Меню для мобильных устройств -->
         <div class="collapse navbar-collapse" id="navbarNav">
-            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-                <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                        Категории
-                    </a>
-                    <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
-                        <li><a class="dropdown-item" href="#">Категория 1</a></li>
-                        <li><a class="dropdown-item" href="#">Категория 2</a></li>
-                        <li><a class="dropdown-item" href="#">Категория 3</a></li>
-                        <li><a class="dropdown-item" href="#">Категория 4</a></li>
-                    </ul>
-                </li>
-            </ul>
-
-            <div>
-                <span sec:authorize="isAuthenticated()">
-                        Вы аутентифицированы!
-                    Вы вошли как <span sec:authentication="principal.username"></span>
-<!--                    Вы вошли как <span th:text="${#authentication.principal.passportNum}"></span>-->
-                </span>
-                <span sec:authorize="isAnonymous()">
-                        Вы не аутентифицированы!
-                </span>
-            </div>
-
-            <!-- Добавляем кнопки входа/выхода в правую часть навигации -->
-            <div class="nav-buttons ms-auto">
+            <ul class="navbar-nav ms-auto">
+                <!-- Кнопки входа/выхода -->
                 <span sec:authorize="isAuthenticated()">
                     <form th:action="@{/logout}" method="post" style="display:inline;">
                         <a th:href="@{/user/{username}(username=${#authentication.principal.username})}" class="btn btn-primary">Профиль</a>
-<!--                        <a th:href="@{'/user/' + #authentication.principal.username}" class="btn btn-primary">Профиль</a>-->
                         <button type="submit" class="btn btn-danger">Выход</button>
                     </form>
                 </span>
@@ -152,18 +140,14 @@
                         <button type="submit" class="btn btn-success">Вход</button>
                     </form>
                 </span>
-            </div>
+            </ul>
         </div>
     </div>
 </nav>
 
-
-
-
 <!-- Основной контент страницы -->
 <div class="container-fluid content">
     <div class="row mt-4">
-        <!-- Центральная колонка (список объявлений) -->
         <div class="col-12 main-content">
             <div class="content-wrapper">
                 <div class="row">
@@ -171,15 +155,12 @@
                         <a th:href="@{'/item/' + ${i.itemId}}" class="text-decoration-none">
                             <div class="item-card">
                                 <img th:src="@{'/images/' + ${photoUrlsMap[i.itemId][0]}}" alt="Photo">
-
                                 <div class="item-title">
                                     <span th:text="${#strings.length(i.name) > 20 ? #strings.substring(i.name, 0, 20) + '...' : i.name}">Название</span>
                                 </div>
-
                                 <div class="item-address">
                                     <span th:text="${#strings.length(i.address) > 25 ? #strings.substring(i.address, 0, 25) + '...' : i.address}">Адрес</span>
                                 </div>
-
                                 <div th:classappend="${i.isAvailable} ? 'item-availability' : 'item-unavailable'"
                                      th:text="${i.isAvailable} ? 'Доступно' : 'Недоступно'">
                                     Доступно
@@ -187,7 +168,6 @@
                             </div>
                         </a>
                     </div>
-
                 </div>
             </div>
         </div>

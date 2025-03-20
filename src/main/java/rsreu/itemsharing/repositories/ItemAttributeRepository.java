@@ -9,4 +9,5 @@ import java.util.List;
 
 public interface ItemAttributeRepository extends JpaRepository<ItemAttribute, ItemAttributeId> {
     List<ItemAttribute> findById_Item(String item);
+
 }

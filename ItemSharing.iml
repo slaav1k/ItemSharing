@@ -7,7 +7,7 @@
         <setting name="provider-name" value="Hibernate" />
         <datasource-mapping>
           <factory-entry name="ItemSharing" value="e370043f-2378-46e3-af4e-908ddab84500" />
-          <factory-entry name="entityManagerFactory" />
+          <factory-entry name="entityManagerFactory" value="e370043f-2378-46e3-af4e-908ddab84500" />
         </datasource-mapping>
         <naming-strategy-map />
       </configuration>
