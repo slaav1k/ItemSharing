@@ -244,20 +244,35 @@ INSERT INTO category_attribute (category_id, attribute_id) VALUES
 INSERT INTO category_attribute (category_id, attribute_id) VALUES
 (2, 6), (2, 7), (2, 8), (2, 9);
 
+-- -- Заполняем значения для товара с ID 'item1' s21
+-- INSERT INTO item_attributes (item_id, attribute_id, value_text, value_number) VALUES
+-- ('ITM001', 1, 'Новое', NULL), -- Состояние (ENUM)
+-- ('ITM001', 2, 'Да', NULL), -- Гарантия (ENUM)
+-- ('ITM001', 3, NULL, 128), -- Объём памяти (NUMBER)
+-- ('ITM001', 4, NULL, 6.2), -- Диагональ экрана (NUMBER)
+-- ('ITM001', 5, 'Аккумулятор', NULL); -- Тип питания (ENUM)
+
 -- Заполняем значения для товара с ID 'item1' s21
-INSERT INTO item_attributes (item_id, attribute_id, value_text, value_number) VALUES
-('ITM001', 1, 'Новое', NULL), -- Состояние (ENUM)
-('ITM001', 2, 'Да', NULL), -- Гарантия (ENUM)
-('ITM001', 3, NULL, 128), -- Объём памяти (NUMBER)
-('ITM001', 4, NULL, 6.2), -- Диагональ экрана (NUMBER)
-('ITM001', 5, 'Аккумулятор', NULL); -- Тип питания (ENUM)
+INSERT INTO item_attributes (item_id, attribute_id, value) VALUES
+('ITM001', 1, 'Новое'), -- Состояние (ENUM)
+('ITM001', 2, 'Да'), -- Гарантия (ENUM)
+('ITM001', 3, '128'), -- Объём памяти (NUMBER)
+('ITM001', 4, '6.2'), -- Диагональ экрана (NUMBER)
+('ITM001', 5, 'Аккумулятор'); -- Тип питания (ENUM)
+
+-- -- Заполняем значения для мебели (item2 - диван)
+-- INSERT INTO item_attributes (item_id, attribute_id, value_text, value_number) VALUES
+-- ('ITM002', 6, 'Прямоугольная', NULL), -- Форма (ENUM)
+-- ('ITM002', 7, 'Ткань', NULL), -- Материал обивки (ENUM)
+-- ('ITM002', 8, 'Диван', NULL), -- Тип мебели (ENUM)
+-- ('ITM002', 9, 'Нет', NULL); -- Разборная конструкция (ENUM)
 
 -- Заполняем значения для мебели (item2 - диван)
-INSERT INTO item_attributes (item_id, attribute_id, value_text, value_number) VALUES
-('ITM002', 6, 'Прямоугольная', NULL), -- Форма (ENUM)
-('ITM002', 7, 'Ткань', NULL), -- Материал обивки (ENUM)
-('ITM002', 8, 'Диван', NULL), -- Тип мебели (ENUM)
-('ITM002', 9, 'Нет', NULL); -- Разборная конструкция (ENUM)
+INSERT INTO item_attributes (item_id, attribute_id, value) VALUES
+('ITM002', 6, 'Прямоугольная'), -- Форма (ENUM)
+('ITM002', 7, 'Ткань'), -- Материал обивки (ENUM)
+('ITM002', 8, 'Диван'), -- Тип мебели (ENUM)
+('ITM002', 9, 'Нет'); -- Разборная конструкция (ENUM)
 
 INSERT INTO photo_links (photo_id, url) VALUES
 (1, 'items/ITM001.jpg'),

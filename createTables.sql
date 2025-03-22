@@ -130,15 +130,22 @@ CREATE TABLE "attribute_enum_value" (
     PRIMARY KEY ("attribute_id", "value")
 );
 
+-- CREATE TABLE "item_attributes" (
+--     "item_id" VARCHAR(100) NOT NULL REFERENCES "item"("item_id"),
+--     "attribute_id" BIGINT NOT NULL REFERENCES "attribute"("attribute_id"),
+--     "value_text" VARCHAR(255),  -- Используется для ENUM
+--     "value_number" DOUBLE PRECISION,  -- Используется для NUMBER
+--     CHECK (
+--         ("value_text" IS NOT NULL AND "value_number" IS NULL) OR 
+--         ("value_text" IS NULL AND "value_number" IS NOT NULL)
+--     ),
+--     PRIMARY KEY ("item_id", "attribute_id")
+-- );
+
 CREATE TABLE "item_attributes" (
     "item_id" VARCHAR(100) NOT NULL REFERENCES "item"("item_id"),
     "attribute_id" BIGINT NOT NULL REFERENCES "attribute"("attribute_id"),
-    "value_text" VARCHAR(255),  -- Используется для ENUM
-    "value_number" DOUBLE PRECISION,  -- Используется для NUMBER
-    CHECK (
-        ("value_text" IS NOT NULL AND "value_number" IS NULL) OR 
-        ("value_text" IS NULL AND "value_number" IS NOT NULL)
-    ),
+    "value" VARCHAR(255) NOT NULL,
     PRIMARY KEY ("item_id", "attribute_id")
 );
 
