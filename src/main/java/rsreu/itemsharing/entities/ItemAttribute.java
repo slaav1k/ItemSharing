@@ -9,18 +9,14 @@ public class ItemAttribute {
     @EmbeddedId
     private ItemAttributeId id;
 
-    @Column(name = "value_text", length = 255)
-    private String valueText;  // Для ENUM
-
-    @Column(name = "value_number")
-    private Double valueNumber; // Для NUMBER
+    @Column(name = "value", length = 255)
+    private String value;  // Для ENUM
 
     public ItemAttribute() {}
 
-    public ItemAttribute(ItemAttributeId id, String valueText, Double valueNumber) {
+    public ItemAttribute(ItemAttributeId id, String value) {
         this.id = id;
-        this.valueText = valueText;
-        this.valueNumber = valueNumber;
+        this.value = value;
     }
 
     public ItemAttributeId getId() {
@@ -31,19 +27,19 @@ public class ItemAttribute {
         this.id = id;
     }
 
-    public String getValueText() {
-        return valueText;
+    public String getValue() {
+        return value;
     }
 
-    public void setValueText(String valueText) {
-        this.valueText = valueText;
+    public void setValue(String value) {
+        this.value = value;
     }
 
-    public Double getValueNumber() {
-        return valueNumber;
-    }
-
-    public void setValueNumber(Double valueNumber) {
-        this.valueNumber = valueNumber;
+    public Double getValueAsNumber() {
+        try {
+            return Double.parseDouble(value);
+        } catch (NumberFormatException e) {
+            return null;
+        }
     }
 }

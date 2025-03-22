@@ -213,9 +213,15 @@ public class MainWindowController {
                     AttributeType type = attribute.getType();
 
                     if (type == AttributeType.ENUM) {
-                        itemAttributeMap.put(attributeName, itemAttribute.getValueText());
+                        itemAttributeMap.put(attributeName, itemAttribute.getValue());
                     } else if (type == AttributeType.NUMBER) {
-                        itemAttributeMap.put(attributeName, itemAttribute.getValueNumber().toString());
+                        try {
+                            double value = Double.parseDouble(itemAttribute.getValue());
+                            itemAttributeMap.put(attributeName, Double.toString(value));
+                        } catch (NumberFormatException e) {
+                            itemAttributeMap.put(attributeName, "Ошибка данных");
+                        }
+//                        itemAttributeMap.put(attributeName, itemAttribute.getValueNumber().toString());
                     }
                 }
 
@@ -235,7 +241,7 @@ public class MainWindowController {
                         String baseKey = filterKey.replace("_min", "").replace("_max", "");
 
                         if (itemAttributeMap.containsKey(baseKey)) {
-                            Double itemValue = Double.parseDouble(itemAttributeMap.get(baseKey));
+                            double itemValue = Double.parseDouble(itemAttributeMap.get(baseKey));
                             if (filterKey.endsWith("_min") && itemValue < Double.parseDouble(filterValue)) {
                                 matches = false;
                                 break;

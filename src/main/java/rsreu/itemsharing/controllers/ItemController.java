@@ -69,9 +69,9 @@ public class ItemController {
             Attribute attribute = attributeRepository.findById(itemAttribute.getId().getAttribute()).orElseThrow();
             AttributeType type = attribute.getType();
             if (type == AttributeType.ENUM) {
-                attributeMap.put(attribute.getName(), itemAttribute.getValueText());
+                attributeMap.put(attribute.getName(), itemAttribute.getValue());
             } else {
-                attributeMap.put(attribute.getName(), itemAttribute.getValueNumber().toString());
+                attributeMap.put(attribute.getName(), itemAttribute.getValue());
             }
 
         }
