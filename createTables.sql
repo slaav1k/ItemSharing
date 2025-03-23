@@ -59,7 +59,7 @@ CREATE TABLE "request_status" (
 );
 
 CREATE TABLE "request" (
-    "request_id" BIGINT NOT NULL,
+    "request_id" BIGSERIAL NOT NULL,
     "holder" BIGINT NOT NULL,
     "item" VARCHAR(100) NOT NULL,
     "start_date" DATE NOT NULL,
@@ -92,7 +92,7 @@ CREATE TABLE "blacklist" (
 );
 
 CREATE TABLE "item_review" (
-    "item_review_id" BIGINT NOT NULL,
+    "item_review_id" BIGSERIAL NOT NULL,
     "item" VARCHAR(100) NOT NULL,
     "reviewer" BIGINT NOT NULL,
     "comment" VARCHAR(255) NOT NULL,
@@ -151,7 +151,7 @@ CREATE TABLE "item_attributes" (
 
 
 CREATE TABLE "photo_links" (
-    "photo_id" BIGINT NOT NULL,
+    "photo_id" BIGSERIAL NOT NULL,
     "url" VARCHAR(255) NOT NULL,
     PRIMARY KEY("photo_id")
 );
