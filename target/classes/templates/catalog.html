@@ -8,6 +8,28 @@
     <title>ItemSharing</title>
     <link rel="stylesheet" th:href="@{/webjars/bootstrap/5.0.0/css/bootstrap.min.css}" />
     <style>
+        /* Стиль для панель фильтров слева */
+        .filter-panel {
+            position: fixed;
+            top: 80px;
+            left: 0;
+            width: 250px;
+            height: 100%;
+            background-color: #f8f9fa;
+            padding: 20px;
+            box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+            display: none; /* Скрываем панель по умолчанию */
+        }
+
+        .filter-panel.active {
+            display: block; /* Показываем панель, если она активна */
+        }
+
+        .filter-panel h3 {
+            margin-bottom: 20px;
+        }
+
+
         .item-card {
             border: 1px solid rgba(221, 221, 221, 0.89);
             padding: 10px;
@@ -174,44 +196,40 @@
     </div>
 </div>
 
-<form method="GET" action="/">
-    <input type="hidden" name="category" th:value="${category}" />
+<!-- Панель фильтров слева -->
+<div class="filter-panel" th:classappend="${category != null} ? 'active' : ''">
+    <h3>Фильтры:</h3>
+    <form method="GET" action="/">
+        <input type="hidden" name="category" th:value="${category}" />
+        <div th:if="${categoryAttributes != null}">
+            <div th:each="attribute : ${categoryAttributes}">
+                <label th:text="${attribute.name}">Атрибут</label>
 
-    <div th:if="${categoryAttributes != null}">
-        <h3>Фильтры:</h3>
+                <!-- Выпадающий список для ENUM -->
+                <div th:if="${attribute.type.name() == 'ENUM'}">
+                    <select name="filters" th:name="${attribute.name}">
+                        <option value="">Не выбрано</option>
+                        <option th:each="value : ${enumValuesMap[attribute.attributeId]}"
+                                th:value="${value}" th:text="${value}"
+                                th:selected="${value == filters[attribute.name]}">
+                        </option>
+                    </select>
+                </div>
 
-        <div th:each="attribute : ${categoryAttributes}">
-            <label th:text="${attribute.name}">Атрибут</label>
-
-            <!-- Выпадающий список для ENUM -->
-            <div th:if="${attribute.type.name() == 'ENUM'}">
-                <select name="filters" th:name="${attribute.name}">
-                    <option value="">Не выбрано</option>
-                    <option th:each="value : ${enumValuesMap[attribute.attributeId]}"
-                            th:value="${value}"
-                            th:text="${value}"
-                            th:selected="${value == filters[attribute.name]}">
-                    </option>
-                </select>
-            </div>
-
-            <!-- Поля ввода для NUMBER -->
-            <div th:if="${attribute.type.name() == 'NUMBER'}">
-                <input type="number" th:name="${attribute.name} + '_min'" placeholder="От"
-                       th:value="${filters[attribute.name + '_min']}" />
-                <input type="number" th:name="${attribute.name} + '_max'" placeholder="До"
-                       th:value="${filters[attribute.name + '_max']}" />
+                <!-- Поля ввода для NUMBER -->
+                <div th:if="${attribute.type.name() == 'NUMBER'}">
+                    <input type="number" th:name="${attribute.name} + '_min'" placeholder="От"
+                           th:value="${filters[attribute.name + '_min']}" />
+                    <input type="number" th:name="${attribute.name} + '_max'" placeholder="До"
+                           th:value="${filters[attribute.name + '_max']}" />
+                </div>
             </div>
         </div>
-    </div>
 
-    <button type="submit">Применить фильтры</button>
-    <a th:href="@{/?category={category}(category=${category})}">Сбросить фильтры</a>
-
-
-</form>
-
-
+        <button type="submit">Применить фильтры</button>
+        <a th:href="@{/?category={category}(category=${category})}">Сбросить фильтры</a>
+    </form>
+</div>
 
 
 
