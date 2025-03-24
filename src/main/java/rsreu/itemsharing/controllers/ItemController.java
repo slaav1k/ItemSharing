@@ -5,10 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import rsreu.itemsharing.entities.*;
 import rsreu.itemsharing.repositories.*;
@@ -18,8 +15,10 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.security.Principal;
 import java.time.LocalDate;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Controller
 public class ItemController {
@@ -49,6 +48,15 @@ public class ItemController {
 
     @Autowired
     private RequestStatusRepository requestStatusRepository;
+
+    @Autowired
+    private CategoryRepository categoryRepository;
+
+    @Autowired
+    private CategoryAttributeRepository categoryAttributeRepository;
+
+    @Autowired
+    private AttributeEnumValueRepository attributeEnumValueRepository;
 
     @Autowired
     private ServletContext servletContext;
@@ -271,6 +279,140 @@ public class ItemController {
 
         return "redirect:/item/" + itemId; // Перенаправляем на страницу товара
     }
+
+    @GetMapping("/selectCategory")
+    public String selectCategory(Model model) {
+        List<Category> categories = categoryRepository.findAll();
+        model.addAttribute("categories", categories);
+        return "selectCategory";
+    }
+
+    @GetMapping("/createItem")
+    public String createItemForm(@RequestParam(name = "category", required = true) Long category, Model model) {
+        // Получаем категорию по ID
+        Category categoryEntity = categoryRepository.findById(category).orElseThrow();
+
+        // Создаем новый объект Item для заполнения
+        Item newItem = new Item();
+        newItem.setCategory(categoryEntity); // Присваиваем выбранную категорию
+
+        // Получаем все атрибуты для выбранной категории
+        List<Attribute> attributes = new ArrayList<>();
+        Map<Long, List<String>> enumValuesMap = new HashMap<>();
+        List<CategoryAttribute> categoryAttributes = categoryAttributeRepository.findById_CategoryId(category);
+
+        attributes = categoryAttributes.stream()
+                .map(catAttr -> attributeRepository.findById(catAttr.getId().getAttributeId()).orElse(null))
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
+
+        // Загружаем возможные значения ENUM
+        for (Attribute attribute : attributes) {
+            if (attribute.getType() == AttributeType.ENUM) {
+                List<String> values = attributeEnumValueRepository.findById_AttributeId(attribute.getAttributeId())
+                        .stream()
+                        .map(value -> value.getId().getValue()) // Достаём значения
+                        .collect(Collectors.toList());
+                enumValuesMap.put(attribute.getAttributeId(), values);
+            }
+        }
+
+        // Добавляем атрибуты в модель, чтобы можно было их заполнить
+        model.addAttribute("newItem", newItem);
+        model.addAttribute("categoryAttributes", attributes);
+        model.addAttribute("enumValuesMap", enumValuesMap);
+        model.addAttribute("categories", categoryRepository.findAll());
+        model.addAttribute("category", categoryEntity); // Для отображения информации о категории
+
+        // Возвращаем страницу с формой для создания товара
+        return "createItem";
+    }
+
+    @PostMapping("/saveItem")
+    public String saveItem(@ModelAttribute Item newItem,
+                           @ModelAttribute Category categoryEntity,
+                           @RequestParam Long categoryId,
+                           @RequestParam Map<String, String> attributes,
+                           @RequestParam("photos") MultipartFile[] photos,
+                           Model model) {
+
+        CustomUserDetails customUserDetails = (CustomUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        User currentUser = customUserDetails.getUser();
+        // Сохраняем товар
+        newItem.setAvailable(true);
+        Category category = categoryRepository.findById(categoryId).orElseThrow();
+        newItem.setCategory(category);
+        newItem.setOwner(currentUser);
+
+        itemRepository.save(newItem);
+
+        // Сохраняем атрибуты
+        for (Map.Entry<String, String> entry : attributes.entrySet()) {
+            String attributeName = entry.getKey();
+            String value = entry.getValue();
+
+            // Пропускаем атрибуты с именами из латинских букв
+            if (attributeName.matches("^[a-zA-Z]+$")) {
+                continue;
+            }
+
+            // Остальная логика обработки атрибута
+            Attribute attribute = attributeRepository.findByName(attributeName);
+            if (attribute == null) {
+                continue;
+            }
+
+
+            // Создаем новый ItemAttribute
+            ItemAttributeId itemAttributeId = new ItemAttributeId(newItem.getItemId(), attribute.getAttributeId());
+            ItemAttribute itemAttribute = new ItemAttribute();
+            itemAttribute.setId(itemAttributeId);
+            itemAttribute.setValue(value);
+
+            itemAttributeRepository.save(itemAttribute);
+        }
+
+        // Обрабатываем загрузку фото
+        if (photos != null && photos.length > 0) {
+            String uploadDir = "C:\\Java Projects\\ItemSharing\\src\\main\\resources\\static\\images\\items";
+
+            // Создаем папку, если она не существует
+            File directory = new File(uploadDir);
+            if (!directory.exists()) {
+                boolean dirCreated = directory.mkdirs();
+                if (!dirCreated) {
+                    return "error";
+                }
+            }
+
+            for (MultipartFile photo : photos) {
+                Path filePath = Paths.get(uploadDir, photo.getOriginalFilename());
+
+                try {
+                    photo.transferTo(filePath.toFile());
+
+                    // Создаем ссылку на фото
+                    PhotoLink photoLink = new PhotoLink();
+                    photoLink.setUrl("items/" + photo.getOriginalFilename());
+                    photoLinkRepository.save(photoLink);
+
+                    // Сохраняем связь с товаром
+
+                    ItemPhotoLinkId itemPhotoLinkId = new ItemPhotoLinkId(newItem.getItemId(), photoLink.getPhotoId());
+                    ItemPhotoLink itemPhotoLink = new ItemPhotoLink(itemPhotoLinkId, newItem, photoLink);
+                    itemPhotoLinkRepository.save(itemPhotoLink);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    return "error";
+                }
+            }
+        }
+
+        // Перенаправляем на страницу товара
+        return "redirect:/item/" + newItem.getItemId();
+    }
+
+
 
 
     private String generateRandomColor() {

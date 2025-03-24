@@ -161,52 +161,28 @@
 </nav>
 
 <div class="container mt-4">
-  <h2>Настройки</h2>
-
-  <!-- Форма изменения данных -->
-  <form th:action="@{/settings/update}" method="post">
+  <h2>Выберите категорию товара</h2>
+  <form th:action="@{/createItem}" method="get">
     <div class="form-group">
-      <label for="fullName">Полное имя</label>
-      <input type="text" class="form-control" id="fullName" name="fullName" th:value="${user.fullName}" required>
+      <label for="category">Категория</label>
+      <select id="category" name="category" class="form-control" required>
+        <option value="" disabled selected>Выберите категорию</option>
+        <option th:each="category : ${categories}" th:value="${category.categoryId}">
+          <span th:text="${category.name}">Название категории</span> -
+          <span th:text="${category.description}">Описание категории</span>
+        </option>
+      </select>
     </div>
-    <div class="form-group">
-      <label for="phone">Телефон</label>
-      <input type="text" class="form-control" id="phone" name="phone" th:value="${user.phone}" required>
-    </div>
-    <div class="form-group">
-      <label for="email">Электронная почта</label>
-      <input type="email" class="form-control" id="email" name="email" th:value="${user.email}" required>
-    </div>
-    <div class="form-group">
-      <label for="address">Адрес</label>
-      <input type="text" class="form-control" id="address" name="address" th:value="${user.address}" required>
-    </div>
-    <div class="form-group">
-      <label for="password">Пароль</label>
-      <input type="password" class="form-control" id="password" name="password" required>
-    </div>
-    <br>
-
-    <!-- Центрируем кнопки -->
-    <div class="d-flex justify-content-center gap-3">
-      <button type="submit" class="btn btn-primary">Сохранить изменения</button>
-
-    </div>
-  </form>
-  <form th:action="@{/settings/delete}" method="post" onsubmit="return confirmDelete()">
     <div class="d-flex justify-content-center gap-3 mt-4">
-      <button type="submit" class="btn btn-danger">Удалить аккаунт</button>
+      <button type="submit" class="btn btn-primary btn-lg">Далее</button>
     </div>
   </form>
 </div>
 
 
+
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
-<script>
-  function confirmDelete() {
-    return confirm("Вы точно уверены, что хотите удалить аккаунт? Это действие необратимо.");
-  }
-</script>
+
 
 
 

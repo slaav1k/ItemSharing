@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 @Entity
 @Table(name = "item") // Соответствие таблице в БД
@@ -57,7 +58,9 @@ public class Item {
     @OneToMany(mappedBy = "item")
     private List<ItemPhotoLink> itemPhotoLinks = new ArrayList<>();
 
-    public Item() {}
+    public Item() {
+        itemId = UUID.randomUUID().toString();
+    }
 
     public Item(String itemId, User owner, String name, Category category, String description, String address,
                 boolean isAvailable, String sizes, double weight, String color, String material,

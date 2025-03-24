@@ -147,7 +147,7 @@
     <div th:if="${user.passportNum.toString() == #authentication.principal.username}">
       <div class="action-buttons">
         <!-- Форма для создания объявления -->
-        <form th:action="@{/create-item}" method="get">
+        <form th:action="@{/selectCategory}" method="get">
           <button type="submit" class="btn btn-primary btn-lg">Создать объявление</button>
         </form>
 

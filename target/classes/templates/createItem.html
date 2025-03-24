@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Item Details</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Подключаем библиотеку flatpickr -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+
+    <style>
+        .parent {
+            display: grid;
+            grid-template-columns: 2fr 1fr; /* 2/3 - карусель, 1/3 - инфо */
+            grid-template-rows: repeat(2, auto);
+            grid-column-gap: 20px;
+            grid-row-gap: 20px;
+        }
+
+        .div1 {
+            grid-area: 1 / 1 / 3 / 2; /* Карусель слева, занимает 2 строки */
+        }
+
+        .div2 {
+            grid-area: 1 / 2 / 2 / 3; /* Верхняя правая часть */
+        }
+
+        .div3 {
+            grid-area: 2 / 2 / 3 / 3; /* Нижняя правая часть */
+        }
+
+        .carousel-inner {
+            position: relative;
+            height: 70vh;
+            max-height: 800px;
+        }
+
+        .carousel-item {
+            height: 100%;
+            width: 100%;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .blurred-background {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-size: cover;
+            background-position: center;
+            filter: blur(10px);
+            transform: scale(1.2); /* Больше размытия */
+        }
+
+        .foreground-image {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        .carousel-thumbnails {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 10px;
+            overflow-x: auto;
+            padding-bottom: 10px;
+        }
+
+        .carousel-thumbnails img {
+            width: 80px;
+            height: 60px;
+            object-fit: cover;
+            cursor: pointer;
+            border: 2px solid transparent;
+        }
+
+        .carousel-thumbnails img.active {
+            border: 2px solid #007bff;
+        }
+        .review-photos {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .review-photo-thumbnail {
+            width: 80px;
+            height: 80px;
+            object-fit: cover;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+
+        .owner-circle {
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            font-weight: bold;
+            color: white;
+            font-size: 16px;
+            text-transform: uppercase;
+        }
+
+        .owner-link {
+            text-decoration: none; /* Убираем подчёркивание у ссылки */
+        }
+
+        .owner-circle {
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            font-weight: bold;
+            color: white;
+            font-size: 16px;
+            text-transform: uppercase;
+            margin-left: 8px; /* Отступ от имени */
+        }
+
+    </style>
+</head>
+<body>
+
+<nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="/">ItemSharing</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto">
+                <!-- Кнопки входа/выхода -->
+                <span sec:authorize="isAuthenticated()">
+                    <form th:action="@{/logout}" method="post" style="display:inline;">
+                        <a th:href="@{/user/{username}(username=${#authentication.principal.username})}" class="btn btn-primary">Профиль</a>
+                        <button type="submit" class="btn btn-danger">Выход</button>
+                    </form>
+                </span>
+                <span sec:authorize="isAnonymous()">
+                    <form th:action="@{/login}" method="get" style="display:inline;">
+                        <button type="submit" class="btn btn-success">Вход</button>
+                    </form>
+                </span>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<div class="container mt-4">
+    <h2>Создать товар</h2>
+    <form th:action="@{/saveItem}" method="post" enctype="multipart/form-data">
+        <!-- Категория -->
+        <div class="form-group">
+            <label for="category">Категория</label>
+            <input type="text" id="category" class="form-control" th:value="${category.name}" readonly />
+            <input type="hidden" th:name="category.categoryId" th:value="${category.categoryId}" />
+            <input type="hidden" name="categoryId" th:value="${category.categoryId}" />
+        </div>
+
+        <!-- Название товара -->
+        <div class="form-group mt-2">
+            <label for="name">Название товара</label>
+            <input type="text" id="name" class="form-control" th:name="name" required />
+        </div>
+
+        <!-- Описание товара -->
+        <div class="form-group mt-2">
+            <label for="description">Описание товара</label>
+            <textarea id="description" class="form-control" th:name="description" required></textarea>
+        </div>
+
+        <!-- Адрес -->
+        <div class="form-group mt-2">
+            <label for="address">Адрес</label>
+            <input type="text" id="address" class="form-control" th:name="address" required />
+        </div>
+
+        <!-- Размеры -->
+        <div class="form-group mt-2">
+            <label for="sizes">Размеры</label>
+            <input type="text" id="sizes" class="form-control" th:name="sizes" required />
+        </div>
+
+        <!-- Вес товара -->
+        <div class="form-group mt-2">
+            <label for="weight">Вес</label>
+            <input type="number" id="weight" class="form-control" th:name="weight" required />
+        </div>
+
+        <!-- Цвет товара -->
+        <div class="form-group mt-2">
+            <label for="color">Цвет</label>
+            <input type="text" id="color" class="form-control" th:name="color" required />
+        </div>
+
+        <!-- Материал товара -->
+        <div class="form-group mt-2">
+            <label for="material">Материал</label>
+            <input type="text" id="material" class="form-control" th:name="material" required />
+        </div>
+
+        <!-- Производитель -->
+        <div class="form-group mt-2">
+            <label for="maker">Производитель</label>
+            <input type="text" id="maker" class="form-control" th:name="maker" required />
+        </div>
+
+        <!-- Модель товара -->
+        <div class="form-group mt-2">
+            <label for="model">Модель</label>
+            <input type="text" id="model" class="form-control" th:name="model" required />
+        </div>
+
+        <!-- Год выпуска -->
+        <div class="form-group mt-2">
+            <label for="releaseYear">Год выпуска</label>
+            <input type="number" id="releaseYear" class="form-control" th:name="releaseYear" required />
+        </div>
+
+        <!-- Поля для атрибутов -->
+        <div class="form-group">
+            <div th:if="${categoryAttributes != null}">
+                <div th:each="attribute : ${categoryAttributes}" class="mt-2">
+                    <label th:text="${attribute.name}">Атрибут</label>
+
+                    <!-- Выпадающий список для ENUM -->
+                    <div th:if="${attribute.type.name() == 'ENUM'}" class="form-group">
+                        <select name="filters" th:name="${attribute.name}" class="form-control w-100">
+                            <option value="">Не выбрано</option>
+                            <option th:each="value : ${enumValuesMap[attribute.attributeId]}"
+                                    th:value="${value}" th:text="${value}">
+                            </option>
+                        </select>
+                    </div>
+
+                    <!-- Поля ввода для NUMBER -->
+                    <div th:if="${attribute.type.name() == 'NUMBER'}" class="form-group">
+                        <div class="row">
+                            <div class="col-12">
+                                <input type="number" th:name="${attribute.name}" placeholder="Введите значение" class="form-control" />
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <!-- Фото товара -->
+        <div class="form-group mt-2">
+            <label for="photos" class="form-label">Фото товара</label>
+            <input type="file" id="photos" name="photos" class="form-control" multiple />
+        </div>
+
+
+        <!-- Кнопка отправки формы -->
+        <div class="d-flex justify-content-center gap-3 mt-4">
+            <button type="submit" class="btn btn-primary btn-lg">Создать товар</button>
+        </div>
+    </form>
+</div>
+
+
+
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+
+
+</body>
+</html>
