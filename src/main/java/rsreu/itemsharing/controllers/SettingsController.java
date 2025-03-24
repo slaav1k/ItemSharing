@@ -1,8 +1,12 @@
 package rsreu.itemsharing.controllers;
 
+import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -16,10 +20,13 @@ import java.security.Principal;
 @Controller
 public class SettingsController {
     private final UserRepository userRepository;
+    @Autowired
+    private final PasswordEncoder passwordEncoder;
 
 
-    public SettingsController(UserRepository userRepository) {
+    public SettingsController(UserRepository userRepository, PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @GetMapping("/settings")
@@ -45,7 +52,7 @@ public class SettingsController {
         currentUser.setPhone(phone);
         currentUser.setEmail(email);
         currentUser.setAddress(address);
-        currentUser.setPassword(password);
+        currentUser.setPassword(passwordEncoder.encode(password));
 
         userRepository.save(currentUser);
 
@@ -53,13 +60,24 @@ public class SettingsController {
     }
 
     // Обработка удаления аккаунта пользователя
+//    @PostMapping("/settings/delete")
+//    public String deleteAccount(Principal principal) {
+////        CustomUserDetails customUserDetails = (CustomUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+////        User currentUser = customUserDetails.getUser();
+////        userRepository.delete(currentUser);
+//        return "redirect:/"; // Перенаправление на страницу выхода
+//    }
+
     @PostMapping("/settings/delete")
-    public String deleteAccount(Principal principal) {
+    @Transactional
+    public String deleteAccount(HttpServletRequest request, Principal principal) {
         CustomUserDetails customUserDetails = (CustomUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         User currentUser = customUserDetails.getUser();
         userRepository.delete(currentUser);
-        return "redirect:/logout"; // Перенаправление на страницу выхода
+        request.getSession().invalidate();
+        return "redirect:/login?logout";
     }
+
 
 
 }

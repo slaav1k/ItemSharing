@@ -190,9 +190,12 @@
     <!-- Центрируем кнопки -->
     <div class="d-flex justify-content-center gap-3">
       <button type="submit" class="btn btn-primary">Сохранить изменения</button>
-      <form th:action="@{/settings/delete}" method="post" onsubmit="return confirmDelete()">
-        <button type="submit" class="btn btn-danger">Удалить аккаунт</button>
-      </form>
+
+    </div>
+  </form>
+  <form th:action="@{/settings/delete}" method="post" onsubmit="return confirmDelete()">
+    <div class="d-flex justify-content-center gap-3 mt-4">
+      <button type="submit" class="btn btn-danger">Удалить аккаунт</button>
     </div>
   </form>
 </div>
