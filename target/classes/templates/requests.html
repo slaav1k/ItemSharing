@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      lang="en">
+<head>
+    <title>Профиль пользователя</title>
+    <link rel="stylesheet" th:href="@{/webjars/bootstrap/5.0.0/css/bootstrap.min.css}" />
+    <style>
+        /* Убираем стандартный стиль ссылок */
+        .clickable {
+            color: inherit; /* Сохраняем цвет текста, который у нас установлен */
+            text-decoration: none; /* Убираем подчеркивание */
+        }
+
+        .clickable:hover {
+            text-decoration: none; /* Убираем подчеркивание при наведении */
+        }
+
+
+        .parent {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            grid-template-rows: repeat(2, auto);
+            grid-gap: 20px;
+            padding: 20px;
+        }
+
+        .div1 {
+            grid-area: 1 / 1 / 2 / 3;
+            text-align: center;
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+        }
+
+        .div2 {
+            grid-area: 2 / 1 / 3 / 2;
+            background: #ffffff;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+
+        .div3 {
+            grid-area: 2 / 2 / 3 / 3;
+            background: #ffffff;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+
+        /* Оформление таблиц */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f1f1f1;
+            font-weight: bold;
+            color: #333;
+        }
+
+        td {
+            background-color: #fff;
+            border-bottom: 1px solid #ddd;
+        }
+
+        /* Оформление кнопок в таблицах */
+        .btn-table {
+            padding: 6px 12px;
+            font-size: 0.9em;
+            border-radius: 5px;
+            border: none;
+        }
+
+        .btn-table.cancel {
+            background-color: #f44336;
+            color: white;
+        }
+
+        .btn-table.approve {
+            background-color: #4caf50;
+            color: white;
+        }
+
+        .btn-table.reject {
+            background-color: #ff9800;
+            color: white;
+        }
+
+        .action-buttons form {
+            display: inline;
+            margin-right: 5px;
+        }
+
+        /* Стили для ссылок */
+        .clickable {
+            color: #007bff;
+            text-decoration: none;
+        }
+
+        .clickable:hover {
+            text-decoration: underline;
+        }
+
+    </style>
+</head>
+<body>
+<nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="/">ItemSharing</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto">
+                <span sec:authorize="isAuthenticated()">
+                    <form th:action="@{/logout}" method="post" style="display:inline;">
+                        <a th:href="@{/user/{username}(username=${#authentication.principal.username})}" class="btn btn-primary">Профиль</a>
+                        <button type="submit" class="btn btn-danger">Выход</button>
+                    </form>
+                </span>
+                <span sec:authorize="isAnonymous()">
+                    <form th:action="@{/login}" method="get" style="display:inline;">
+                        <button type="submit" class="btn btn-success">Вход</button>
+                    </form>
+                </span>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<div class="parent">
+    <!-- Имя пользователя и средняя оценка -->
+    <div class="div1">
+        <h1 th:text="${user.fullName}">Имя пользователя</h1>
+    </div>
+
+    <!-- Исходящие заявки -->
+    <div class="div2">
+        <h2>Исходящие заявки</h2>
+
+        <table>
+            <thead>
+            <tr>
+                <th>Вещь</th>
+                <th>Статус</th>
+                <th>Срок пользования</th> <!-- Добавляем столбец для дат -->
+                <th>Действия</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="request : ${outgoingRequests}">
+                <td><a th:href="@{/item/{itemId}(itemId=${request.item.itemId})}" class="clickable" th:text="${request.item.name}"></a></td>
+                <td th:text="${request.status.description}"></td>
+                <td th:utext="${request.startDate} + '<br>' + ${request.endDate}"></td>
+                <td class="action-buttons">
+                    <form th:action="@{/requests/cancel}" method="post">
+                        <input type="hidden" name="requestId" th:value="${request.requestId}">
+                        <button type="submit" class="btn-table cancel">Отменить</button>
+                    </form>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Входящие заявки -->
+    <div class="div3">
+        <h2>Входящие заявки</h2>
+        <table>
+            <thead>
+            <tr>
+                <th>Вещь</th>
+                <th>Заявитель</th>
+                <th>Статус</th>
+                <th>Срок пользования</th> <!-- Добавляем столбец для дат -->
+                <th>Действия</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="request : ${incomingRequests}">
+                <td><a th:href="@{/item/{itemId}(itemId=${request.item.itemId})}" class="clickable" th:text="${request.item.name}"></a></td>
+                <td><a th:href="@{/user/{username}(username=${request.holder.passportNum})}" class="clickable" th:text="${request.holder.fullName}"></a></td>
+                <td th:text="${request.status.description}"></td>
+                <td th:utext="${request.startDate} + '<br>' + ${request.endDate}"></td>
+                <td class="action-buttons">
+                    <form th:action="@{/requests/approve}" method="post">
+                        <input type="hidden" name="requestId" th:value="${request.requestId}">
+                        <button type="submit" class="btn-table approve">Принять</button>
+                    </form>
+                    <form th:action="@{/requests/reject}" method="post">
+                        <input type="hidden" name="requestId" th:value="${request.requestId}">
+                        <button type="submit" class="btn-table reject">Отклонить</button>
+                    </form>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
