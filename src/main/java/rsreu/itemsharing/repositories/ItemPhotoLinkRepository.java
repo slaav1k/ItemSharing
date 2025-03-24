@@ -9,4 +9,6 @@ import java.util.List;
 
 public interface ItemPhotoLinkRepository extends JpaRepository<ItemPhotoLink, ItemPhotoLinkId> {
     List<ItemPhotoLink> findByItem(Item item);
+
+    void deleteByItem_ItemId(String itemId);
 }

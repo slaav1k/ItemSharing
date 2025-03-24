@@ -4,6 +4,7 @@ import jakarta.servlet.ServletContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -317,6 +318,7 @@ public class ItemController {
             }
         }
 
+
         // Добавляем атрибуты в модель, чтобы можно было их заполнить
         model.addAttribute("newItem", newItem);
         model.addAttribute("categoryAttributes", attributes);
@@ -411,6 +413,117 @@ public class ItemController {
         // Перенаправляем на страницу товара
         return "redirect:/item/" + newItem.getItemId();
     }
+
+    @GetMapping("/editItem/{itemId}")
+    public String editItemForm(@PathVariable String itemId, Model model) {
+        Item item = itemRepository.findById(itemId).orElseThrow();
+
+        List<Attribute> attributes = new ArrayList<>();
+        Map<Long, List<String>> enumValuesMap = new HashMap<>();
+        List<CategoryAttribute> categoryAttributes = categoryAttributeRepository.findById_CategoryId(item.getCategory().getCategoryId());
+
+        attributes = categoryAttributes.stream()
+                .map(catAttr -> attributeRepository.findById(catAttr.getId().getAttributeId()).orElse(null))
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
+
+        // Загружаем возможные значения ENUM
+        for (Attribute attribute : attributes) {
+            if (attribute.getType() == AttributeType.ENUM) {
+                List<String> values = attributeEnumValueRepository.findById_AttributeId(attribute.getAttributeId())
+                        .stream()
+                        .map(value -> value.getId().getValue()) // Достаём значения
+                        .collect(Collectors.toList());
+                enumValuesMap.put(attribute.getAttributeId(), values);
+            }
+        }
+
+        // Загружаем дополнительные атрибуты
+        List<ItemAttribute> itemAttributes = itemAttributeRepository.findById_Item(item.getItemId());
+        Map<String, String> attributeMap = new HashMap<>();
+        for (ItemAttribute itemAttribute : itemAttributes) {
+            Attribute attribute = attributeRepository.findById(itemAttribute.getId().getAttribute()).orElseThrow();
+            AttributeType type = attribute.getType();
+            if (type == AttributeType.ENUM) {
+                attributeMap.put(attribute.getName(), itemAttribute.getValue());
+            } else {
+                attributeMap.put(attribute.getName(), itemAttribute.getValue());
+            }
+
+        }
+        model.addAttribute("attributes", attributeMap);
+
+        model.addAttribute("item", item);
+        model.addAttribute("categoryAttributes", attributes);
+        model.addAttribute("enumValuesMap", enumValuesMap);
+        model.addAttribute("categories", categoryRepository.findAll());
+        model.addAttribute("category", item.getCategory());
+        return "editItem";
+    }
+
+
+    @PostMapping("/updateItem")
+    public String updateItem(@ModelAttribute Item updatedItem,
+                             @RequestParam Map<String, String> attributes,
+                             @RequestParam("photos") MultipartFile[] photos) {
+
+        Item item = itemRepository.findById(updatedItem.getItemId()).orElseThrow();
+        item.setName(updatedItem.getName());
+        item.setDescription(updatedItem.getDescription());
+        item.setAddress(updatedItem.getAddress());
+        item.setSizes(updatedItem.getSizes());
+        item.setWeight(updatedItem.getWeight());
+        item.setColor(updatedItem.getColor());
+        item.setMaterial(updatedItem.getMaterial());
+        item.setMaker(updatedItem.getMaker());
+        item.setModel(updatedItem.getModel());
+        item.setReleaseYear(updatedItem.getReleaseYear());
+
+        itemRepository.save(item);
+
+        // Обновляем атрибуты
+        for (Map.Entry<String, String> entry : attributes.entrySet()) {
+            String attributeName = entry.getKey();
+            String value = entry.getValue();
+
+            Attribute attribute = attributeRepository.findByName(attributeName);
+            if (attribute == null) {
+                continue;
+            }
+
+            ItemAttributeId itemAttributeId = new ItemAttributeId(item.getItemId(), attribute.getAttributeId());
+            ItemAttribute itemAttribute = itemAttributeRepository.findById(itemAttributeId)
+                    .orElse(new ItemAttribute(itemAttributeId, value));
+
+            itemAttribute.setValue(value);
+            itemAttributeRepository.save(itemAttribute);
+        }
+
+        // Обновляем фото
+        if (photos != null && photos.length > 0) {
+            // Логика обновления фото
+        }
+
+        return "redirect:/item/" + item.getItemId();
+    }
+
+    @PostMapping("/deleteItem/{itemId}")
+    @Transactional
+    public String deleteItem(@PathVariable String itemId) {
+        // Удаляем связанные атрибуты
+        itemAttributeRepository.deleteById_Item(itemId);
+
+        // Удаляем связанные фотографии
+        itemPhotoLinkRepository.deleteByItem_ItemId(itemId);
+
+        // Удаляем сам товар
+        itemRepository.deleteById(itemId);
+
+        return "redirect:/";
+    }
+
+
+
 
 
 
