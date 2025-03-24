@@ -1,5 +1,7 @@
 <!DOCTYPE html>
-<html lang="en">
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -138,6 +140,23 @@
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
         </button>
+
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto">
+                <!-- Кнопки входа/выхода -->
+                <span sec:authorize="isAuthenticated()">
+                    <form th:action="@{/logout}" method="post" style="display:inline;">
+                        <a th:href="@{/user/{username}(username=${#authentication.principal.username})}" class="btn btn-primary">Профиль</a>
+                        <button type="submit" class="btn btn-danger">Выход</button>
+                    </form>
+                </span>
+                <span sec:authorize="isAnonymous()">
+                    <form th:action="@{/login}" method="get" style="display:inline;">
+                        <button type="submit" class="btn btn-success">Вход</button>
+                    </form>
+                </span>
+            </ul>
+        </div>
     </div>
 </nav>
 
