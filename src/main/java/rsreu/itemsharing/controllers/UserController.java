@@ -1,5 +1,6 @@
 package rsreu.itemsharing.controllers;
 
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
@@ -9,6 +10,7 @@ import rsreu.itemsharing.entities.*;
 import rsreu.itemsharing.repositories.*;
 import rsreu.itemsharing.security.CustomUserDetails;
 
+import java.io.IOException;
 import java.security.Principal;
 import java.time.LocalDate;
 import java.util.*;
@@ -21,13 +23,15 @@ public class UserController {
     private final RequestRepository requestRepository;
     private final ReviewRepository reviewRepository;
     private final BlackListRepository blackListRepository;
+    private final ReportService reportService;
 
-    public UserController(UserRepository userRepository, ItemPhotoLinkRepository itemPhotoLinkRepository, RequestRepository requestRepository, ReviewRepository reviewRepository, BlackListRepository blackListRepository) {
+    public UserController(UserRepository userRepository, ItemPhotoLinkRepository itemPhotoLinkRepository, RequestRepository requestRepository, ReviewRepository reviewRepository, BlackListRepository blackListRepository, ReportService reportService) {
         this.userRepository = userRepository;
         this.itemPhotoLinkRepository = itemPhotoLinkRepository;
         this.requestRepository = requestRepository;
         this.reviewRepository = reviewRepository;
         this.blackListRepository = blackListRepository;
+        this.reportService = reportService;
     }
 
     @GetMapping("/{passportNum}")
@@ -143,6 +147,19 @@ public class UserController {
     private boolean checkIfBlocked(User currentUser, User targetUser) {
         Optional<BlackList> blackListEntry = blackListRepository.findByBlockedUserEntityAndBlockedByUserEntity(targetUser, currentUser);
         return blackListEntry.isPresent();
+    }
+
+
+    @GetMapping("/downloadBlacklistReport")
+    public void downloadBlacklistReport(HttpServletResponse response, Principal principal) throws IOException {
+        response.setContentType("application/pdf");
+        response.setHeader("Content-Disposition", "attachment; filename=blacklist_report.pdf");
+
+        User user = ((CustomUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getUser();
+        List<BlackList> blockedBy = blackListRepository.findByBlockedByUserEntity(user);
+        List<BlackList> blocked = blackListRepository.findByBlockedUserEntity(user);
+
+        reportService.generateBlacklistReport(response, blocked, blockedBy);
     }
 
 

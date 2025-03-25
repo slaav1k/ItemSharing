@@ -2,6 +2,7 @@ package rsreu.itemsharing.entities;
 
 import jakarta.persistence.*;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 
 @Entity
 @Table(name = "blacklist")
@@ -30,6 +31,23 @@ public class BlackList {
         this.blockedUserEntity = blockedUserEntity;
         this.blockedByUserEntity = blockedByUserEntity;
         this.date = date;
+    }
+
+    @Override
+    public String toString() {
+        DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("dd.MM.yyyy");
+
+        return String.format(
+                "Блокировка:\n" +
+                        "────────────────────────────\n" +
+                        "• Заблокированный пользователь: %s\n" +
+                        "• Инициатор блокировки: %s\n" +
+                        "• Дата блокировки: %s\n" +
+                        "────────────────────────────",
+                blockedUserEntity != null ? blockedUserEntity.getFullName() + " (" + blockedUserEntity.getEmail() + ")" : "не указан",
+                blockedByUserEntity != null ? blockedByUserEntity.getFullName() + " (" + blockedByUserEntity.getEmail() + ")" : "не указан",
+                date != null ? date.format(dateFormatter) : "не указана"
+        );
     }
 
     public BlackListId getId() {

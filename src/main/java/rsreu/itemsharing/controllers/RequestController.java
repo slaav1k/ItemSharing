@@ -1,5 +1,6 @@
 package rsreu.itemsharing.controllers;
 
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -13,6 +14,7 @@ import rsreu.itemsharing.repositories.RequestRepository;
 import rsreu.itemsharing.repositories.UserRepository;
 import rsreu.itemsharing.security.CustomUserDetails;
 
+import java.io.IOException;
 import java.security.Principal;
 import java.util.List;
 
@@ -21,10 +23,12 @@ public class RequestController {
 
     private final RequestRepository requestRepository;
     private final UserRepository userRepository;
+    private final ReportService reportService;
 
-    public RequestController(final RequestRepository requestRepository, final UserRepository userRepository) {
+    public RequestController(final RequestRepository requestRepository, final UserRepository userRepository, ReportService reportService) {
         this.requestRepository = requestRepository;
         this.userRepository = userRepository;
+        this.reportService = reportService;
     }
 
     @GetMapping("/requests")
@@ -61,5 +65,17 @@ public class RequestController {
         request.setStatus(new RequestStatus(5, "Rejected", "Заявка отклонена."));
         requestRepository.save(request);
         return "redirect:/requests";
+    }
+
+    @GetMapping("/downloadRequestsReport")
+    public void downloadRequestsReport(HttpServletResponse response, Principal principal) throws IOException {
+        response.setContentType("application/pdf");
+        response.setHeader("Content-Disposition", "attachment; filename=requests_report.pdf");
+
+        User user = ((CustomUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getUser();
+        List<Request> incoming = requestRepository.findByItemOwner(user);
+        List<Request> outgoing = requestRepository.findByHolder(user);
+
+        reportService.generateRequestsReport(response, incoming, outgoing);
     }
 }

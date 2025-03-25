@@ -43,6 +43,23 @@ public class Request {
         this.status = status;
     }
 
+    @Override
+    public String toString() {
+        return String.format(
+                "Заявка #%d\n" +
+                        "Пользователь: %s\n" +
+                        "Вещь: %s\n" +
+                        "Период: %s - %s\n" +
+                        "Статус: %s",
+                requestId,
+                holder != null ? holder.getFullName() : "не указан",
+                item != null ? item.getName() : "не указана",
+                startDate,
+                endDate,
+                status != null ? status.getDescription() : "не указан"
+        );
+    }
+
     public Long getRequestId() {
         return requestId;
     }
