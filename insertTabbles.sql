@@ -68,7 +68,7 @@ INSERT INTO item (
 
 INSERT INTO request_status (status_id, name, description) VALUES
 (1, 'Pending', 'Заявка ожидает обработки.'),
-(2, 'Approved', 'Заявка одобрена и ожидает выполнения.'),
+(2, 'Approved', 'Заявка одобрена.'),
 (3, 'Completed', 'Заявка выполнена.'),
 (4, 'Canceled', 'Заявка отменена пользователем или администратором.'),
 (5, 'Rejected', 'Заявка отклонена администратором.');
