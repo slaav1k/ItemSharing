@@ -29,6 +29,13 @@
     <properties>
         <java.version>17</java.version>
     </properties>
+    <repositories>
+        <repository>
+            <id>itext</id>
+            <url>https://repo.itextsupport.com/releases</url>
+        </repository>
+    </repositories>
+
     <dependencies>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -78,26 +85,32 @@
             <artifactId>lombok</artifactId>
             <scope>provided</scope>
         </dependency>
-        <!-- iText Core -->
+
+        <!-- https://mvnrepository.com/artifact/com.itextpdf/itext7-core -->
         <dependency>
             <groupId>com.itextpdf</groupId>
             <artifactId>itext7-core</artifactId>
-            <version>8.0.2</version> <!-- проверь актуальную версию на Maven Central -->
+            <version>8.0.2</version>
+            <type>pom</type>
         </dependency>
 
-        <!-- iText Layout (для работы с текстом, таблицами и прочим) -->
+
+        <!-- https://mvnrepository.com/artifact/com.itextpdf/layout -->
         <dependency>
             <groupId>com.itextpdf</groupId>
             <artifactId>layout</artifactId>
             <version>8.0.2</version>
         </dependency>
 
-        <!-- iText Kernel (ядро библиотеки для работы с PDF) -->
+        <!-- https://mvnrepository.com/artifact/com.itextpdf/kernel -->
         <dependency>
             <groupId>com.itextpdf</groupId>
             <artifactId>kernel</artifactId>
             <version>8.0.2</version>
         </dependency>
+
+
+
     </dependencies>
 
     <build>

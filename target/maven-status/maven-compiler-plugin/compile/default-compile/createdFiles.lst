@@ -1,0 +1,11 @@
+rsreu\itemsharing\entities\Item.class
+rsreu\itemsharing\controllers\AuthController.class
+rsreu\itemsharing\entities\ItemPhotoLinkId.class
+rsreu\itemsharing\entities\ItemPhotoLink.class
+rsreu\itemsharing\entities\PhotoLink.class
+rsreu\itemsharing\ItemSharingApplication.class
+rsreu\itemsharing\repositories\UserRepository.class
+rsreu\itemsharing\entities\User.class
+rsreu\itemsharing\entities\Review.class
+rsreu\itemsharing\entities\ReviewId.class
+rsreu\itemsharing\entities\Category.class
