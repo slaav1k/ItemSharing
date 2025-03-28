@@ -8,7 +8,7 @@ INSERT INTO item_photo_links (item_id, photo_id) VALUES
 
 select * from category_attribute
 
-DELETE FROM item_review_photo_links;
+DELETE FROM request;
 
 DELETE FROM users where passport_num = '1234123456';
 

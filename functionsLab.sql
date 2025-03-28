@@ -72,47 +72,5 @@ BEGIN
 END;
 $$;
 
-CREATE OR REPLACE FUNCTION check_item_availability()
-RETURNS TRIGGER AS $$
-BEGIN
-    -- Проверяем, доступен ли предмет
-    IF NOT EXISTS (SELECT 1 FROM item WHERE item_id = NEW.item AND is_available = TRUE) THEN
-        RAISE EXCEPTION 'Item is not available for rent';
-    END IF;
 
-    -- Проверяем пересечение дат
-    IF EXISTS (
-        SELECT 1 FROM request 
-        WHERE item = NEW.item
-        AND status NOT IN (3, 4) 
-        AND (NEW.start_date BETWEEN start_date AND end_date OR
-             NEW.end_date BETWEEN start_date AND end_date)
-    ) THEN
-        RAISE EXCEPTION 'This item is already rented for the selected period';
-    END IF;
-
-    RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
-
-CREATE TRIGGER before_request_insert
-BEFORE INSERT ON public.request
-FOR EACH ROW
-EXECUTE FUNCTION check_item_availability();
-
-CREATE OR REPLACE FUNCTION update_item_availability()
-RETURNS TRIGGER AS $$
-BEGIN
-    UPDATE item
-    SET is_available = TRUE
-    WHERE item_id = NEW.item;
-    RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
-
-CREATE TRIGGER after_request_update
-AFTER UPDATE ON request
-FOR EACH ROW
-WHEN (OLD.status != NEW.status AND NEW.status = 4)  -- 4 = "Завершено"
-EXECUTE FUNCTION update_item_availability();
 
