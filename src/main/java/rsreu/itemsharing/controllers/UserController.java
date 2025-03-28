@@ -1,12 +1,15 @@
 package rsreu.itemsharing.controllers;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import rsreu.itemsharing.entities.*;
+import rsreu.itemsharing.laba4.Birt;
 import rsreu.itemsharing.repositories.*;
 import rsreu.itemsharing.security.CustomUserDetails;
 
@@ -18,6 +21,9 @@ import java.util.*;
 @Controller
 @RequestMapping("/user")
 public class UserController {
+    @Autowired
+    private Birt birt;
+
     private final UserRepository userRepository;
     private final ItemPhotoLinkRepository itemPhotoLinkRepository;
     private final RequestRepository requestRepository;
@@ -151,15 +157,19 @@ public class UserController {
 
 
     @GetMapping("/downloadBlacklistReport")
-    public void downloadBlacklistReport(HttpServletResponse response, Principal principal) throws IOException {
-        response.setContentType("application/pdf");
-        response.setHeader("Content-Disposition", "attachment; filename=blacklist_report.pdf");
-
+    public void downloadBlacklistReport(HttpServletResponse response,
+                                        HttpServletRequest request,
+                                        Principal principal) throws IOException {
         User user = ((CustomUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getUser();
-        List<BlackList> blockedBy = blackListRepository.findByBlockedByUserEntity(user);
-        List<BlackList> blocked = blackListRepository.findByBlockedUserEntity(user);
-
-        reportService.generateBlacklistReport(response, blocked, blockedBy);
+//        response.setContentType("application/pdf");
+//        response.setHeader("Content-Disposition", "attachment; filename=blacklist_report.pdf");
+//
+//
+//        List<BlackList> blockedBy = blackListRepository.findByBlockedByUserEntity(user);
+//        List<BlackList> blocked = blackListRepository.findByBlockedUserEntity(user);
+//
+//        reportService.generateBlacklistReport(response, blocked, blockedBy);
+        birt.generatePDF_aboutBlacklistByUser(user.getPassportNum(), response, request);
     }
 
 

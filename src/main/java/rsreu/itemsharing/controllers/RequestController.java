@@ -1,6 +1,8 @@
 package rsreu.itemsharing.controllers;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -10,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import rsreu.itemsharing.entities.Request;
 import rsreu.itemsharing.entities.RequestStatus;
 import rsreu.itemsharing.entities.User;
+import rsreu.itemsharing.laba4.Birt;
 import rsreu.itemsharing.repositories.RequestRepository;
 import rsreu.itemsharing.repositories.UserRepository;
 import rsreu.itemsharing.security.CustomUserDetails;
@@ -20,6 +23,9 @@ import java.util.List;
 
 @Controller
 public class RequestController {
+
+    @Autowired
+    private Birt birt;
 
     private final RequestRepository requestRepository;
     private final UserRepository userRepository;
@@ -68,14 +74,19 @@ public class RequestController {
     }
 
     @GetMapping("/downloadRequestsReport")
-    public void downloadRequestsReport(HttpServletResponse response, Principal principal) throws IOException {
-        response.setContentType("application/pdf");
-        response.setHeader("Content-Disposition", "attachment; filename=requests_report.pdf");
-
+    public void downloadRequestsReport(HttpServletRequest request,
+                                       HttpServletResponse response,
+                                       Principal principal) {
         User user = ((CustomUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getUser();
-        List<Request> incoming = requestRepository.findByItemOwner(user);
-        List<Request> outgoing = requestRepository.findByHolder(user);
-
-        reportService.generateRequestsReport(response, incoming, outgoing);
+//
+//
+//        response.setContentType("application/pdf");
+//        response.setHeader("Content-Disposition", "attachment; filename=requests_report.pdf");
+//
+//        List<Request> incoming = requestRepository.findByItemOwner(user);
+//        List<Request> outgoing = requestRepository.findByHolder(user);
+//
+//        reportService.generateRequestsReport(response, incoming, outgoing);
+        birt.generatePDF_aboutRequestsByUser(user.getPassportNum(), response, request);
     }
 }
