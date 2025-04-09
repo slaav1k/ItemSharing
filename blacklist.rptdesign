@@ -309,6 +309,196 @@ WHERE b.blocked_user = ?]]></xml-property>
   </design:ResultSets>
 </model:DesignValues>]]></xml-property>
         </oda-data-set>
+        <oda-data-set extensionID="org.eclipse.birt.report.data.oda.jdbc.JdbcSelectDataSet" name="CountBlockedUsers" id="77">
+            <list-property name="columnHints">
+                <structure>
+                    <property name="columnName">record_count</property>
+                    <property name="analysis">measure</property>
+                    <text-property name="displayName">record_count</text-property>
+                    <text-property name="heading">record_count</text-property>
+                </structure>
+            </list-property>
+            <list-property name="parameters">
+                <structure>
+                    <property name="name">param_1</property>
+                    <property name="paramName">passport</property>
+                    <property name="nativeName"></property>
+                    <property name="dataType">decimal</property>
+                    <property name="nativeDataType">-5</property>
+                    <property name="position">1</property>
+                    <property name="isInput">true</property>
+                    <property name="isOutput">false</property>
+                </structure>
+            </list-property>
+            <structure name="cachedMetaData">
+                <list-property name="resultSet">
+                    <structure>
+                        <property name="position">1</property>
+                        <property name="name">record_count</property>
+                        <property name="dataType">decimal</property>
+                    </structure>
+                </list-property>
+            </structure>
+            <property name="dataSource">Data Source</property>
+            <list-property name="resultSet">
+                <structure>
+                    <property name="position">1</property>
+                    <property name="name">record_count</property>
+                    <property name="nativeName">record_count</property>
+                    <property name="dataType">decimal</property>
+                    <property name="nativeDataType">-5</property>
+                </structure>
+            </list-property>
+            <xml-property name="queryText"><![CDATA[SELECT COUNT(*) AS record_count
+FROM "users" u
+JOIN "blacklist" b ON u.passport_num = b.blocked_user
+WHERE b.blocked_by_user = ?;
+]]></xml-property>
+            <xml-property name="designerValues"><![CDATA[<?xml version="1.0" encoding="UTF-8"?>
+<model:DesignValues xmlns:design="http://www.eclipse.org/datatools/connectivity/oda/design" xmlns:model="http://www.eclipse.org/birt/report/model/adapter/odaModel">
+  <Version>2.0</Version>
+  <DataSetParameters>
+    <parameter>
+      <design:ParameterDefinition>
+        <design:inOutMode>In</design:inOutMode>
+        <design:attributes>
+          <design:identifier>
+            <design:name></design:name>
+            <design:position>1</design:position>
+          </design:identifier>
+          <design:nativeDataTypeCode>-5</design:nativeDataTypeCode>
+          <design:precision>0</design:precision>
+          <design:scale>0</design:scale>
+          <design:nullability>Unknown</design:nullability>
+        </design:attributes>
+      </design:ParameterDefinition>
+    </parameter>
+  </DataSetParameters>
+  <design:ResultSets derivedMetaData="true">
+    <design:resultSetDefinitions>
+      <design:resultSetColumns>
+        <design:resultColumnDefinitions>
+          <design:attributes>
+            <design:identifier>
+              <design:name>record_count</design:name>
+              <design:position>1</design:position>
+            </design:identifier>
+            <design:nativeDataTypeCode>-5</design:nativeDataTypeCode>
+            <design:precision>19</design:precision>
+            <design:scale>0</design:scale>
+            <design:nullability>Unknown</design:nullability>
+            <design:uiHints>
+              <design:displayName>record_count</design:displayName>
+            </design:uiHints>
+          </design:attributes>
+          <design:usageHints>
+            <design:label>record_count</design:label>
+            <design:formattingHints>
+              <design:displaySize>20</design:displaySize>
+            </design:formattingHints>
+          </design:usageHints>
+        </design:resultColumnDefinitions>
+      </design:resultSetColumns>
+      <design:criteria/>
+    </design:resultSetDefinitions>
+  </design:ResultSets>
+</model:DesignValues>]]></xml-property>
+        </oda-data-set>
+        <oda-data-set extensionID="org.eclipse.birt.report.data.oda.jdbc.JdbcSelectDataSet" name="CountUsersByBlock" id="78">
+            <list-property name="columnHints">
+                <structure>
+                    <property name="columnName">record_count</property>
+                    <property name="analysis">measure</property>
+                    <text-property name="displayName">record_count</text-property>
+                    <text-property name="heading">record_count</text-property>
+                </structure>
+            </list-property>
+            <list-property name="parameters">
+                <structure>
+                    <property name="name">param_1</property>
+                    <property name="paramName">passport</property>
+                    <property name="nativeName"></property>
+                    <property name="dataType">decimal</property>
+                    <property name="nativeDataType">-5</property>
+                    <property name="position">1</property>
+                    <property name="isInput">true</property>
+                    <property name="isOutput">false</property>
+                </structure>
+            </list-property>
+            <structure name="cachedMetaData">
+                <list-property name="resultSet">
+                    <structure>
+                        <property name="position">1</property>
+                        <property name="name">record_count</property>
+                        <property name="dataType">decimal</property>
+                    </structure>
+                </list-property>
+            </structure>
+            <property name="dataSource">Data Source</property>
+            <list-property name="resultSet">
+                <structure>
+                    <property name="position">1</property>
+                    <property name="name">record_count</property>
+                    <property name="nativeName">record_count</property>
+                    <property name="dataType">decimal</property>
+                    <property name="nativeDataType">-5</property>
+                </structure>
+            </list-property>
+            <xml-property name="queryText"><![CDATA[SELECT COUNT(*) AS record_count
+FROM "users" u
+JOIN "blacklist" b ON u.passport_num = b.blocked_by_user
+WHERE b.blocked_user = ?;
+]]></xml-property>
+            <xml-property name="designerValues"><![CDATA[<?xml version="1.0" encoding="UTF-8"?>
+<model:DesignValues xmlns:design="http://www.eclipse.org/datatools/connectivity/oda/design" xmlns:model="http://www.eclipse.org/birt/report/model/adapter/odaModel">
+  <Version>2.0</Version>
+  <DataSetParameters>
+    <parameter>
+      <design:ParameterDefinition>
+        <design:inOutMode>In</design:inOutMode>
+        <design:attributes>
+          <design:identifier>
+            <design:name></design:name>
+            <design:position>1</design:position>
+          </design:identifier>
+          <design:nativeDataTypeCode>-5</design:nativeDataTypeCode>
+          <design:precision>0</design:precision>
+          <design:scale>0</design:scale>
+          <design:nullability>Unknown</design:nullability>
+        </design:attributes>
+      </design:ParameterDefinition>
+    </parameter>
+  </DataSetParameters>
+  <design:ResultSets derivedMetaData="true">
+    <design:resultSetDefinitions>
+      <design:resultSetColumns>
+        <design:resultColumnDefinitions>
+          <design:attributes>
+            <design:identifier>
+              <design:name>record_count</design:name>
+              <design:position>1</design:position>
+            </design:identifier>
+            <design:nativeDataTypeCode>-5</design:nativeDataTypeCode>
+            <design:precision>19</design:precision>
+            <design:scale>0</design:scale>
+            <design:nullability>Unknown</design:nullability>
+            <design:uiHints>
+              <design:displayName>record_count</design:displayName>
+            </design:uiHints>
+          </design:attributes>
+          <design:usageHints>
+            <design:label>record_count</design:label>
+            <design:formattingHints>
+              <design:displaySize>20</design:displaySize>
+            </design:formattingHints>
+          </design:usageHints>
+        </design:resultColumnDefinitions>
+      </design:resultSetColumns>
+      <design:criteria/>
+    </design:resultSetDefinitions>
+  </design:ResultSets>
+</model:DesignValues>]]></xml-property>
+        </oda-data-set>
     </data-sets>
     <page-setup>
         <simple-master-page name="Simple MasterPage" id="2">
@@ -360,35 +550,78 @@ WHERE b.blocked_user = ?]]></xml-property>
                 </cell>
             </row>
         </grid>
-        <table id="18">
-            <column id="31"/>
-            <column id="32"/>
-            <column id="33"/>
-            <header>
-                <row id="19">
-                    <cell id="20"/>
-                    <cell id="21"/>
-                    <cell id="22"/>
-                </row>
-            </header>
-            <detail>
-                <row id="23">
-                    <cell id="24"/>
-                    <cell id="25"/>
-                    <cell id="26"/>
-                </row>
-            </detail>
-            <footer>
-                <row id="27">
-                    <cell id="28"/>
-                    <cell id="29"/>
-                    <cell id="30"/>
-                </row>
-            </footer>
-        </table>
+        <grid id="79">
+            <column id="80"/>
+            <column id="81"/>
+            <column id="82"/>
+            <column id="83"/>
+            <row id="84">
+                <cell id="85">
+                    <text id="89">
+                        <property name="fontFamily">"Times New Roman"</property>
+                        <property name="borderRightStyle">solid</property>
+                        <property name="borderRightWidth">medium</property>
+                        <property name="textAlign">center</property>
+                        <property name="contentType">auto</property>
+                        <text-property name="content"><![CDATA[Вы заблокировали:]]></text-property>
+                    </text>
+                </cell>
+                <cell id="86">
+                    <data id="91">
+                        <property name="fontFamily">"Times New Roman"</property>
+                        <property name="borderLeftStyle">solid</property>
+                        <property name="borderLeftWidth">medium</property>
+                        <property name="borderRightStyle">solid</property>
+                        <property name="borderRightWidth">medium</property>
+                        <property name="textAlign">center</property>
+                        <property name="dataSet">CountBlockedUsers</property>
+                        <list-property name="boundDataColumns">
+                            <structure>
+                                <property name="name">record_count</property>
+                                <text-property name="displayName">record_count</text-property>
+                                <expression name="expression" type="javascript">dataSetRow["record_count"]</expression>
+                                <property name="dataType">decimal</property>
+                            </structure>
+                        </list-property>
+                        <property name="resultSetColumn">record_count</property>
+                    </data>
+                </cell>
+                <cell id="87">
+                    <text id="90">
+                        <property name="fontFamily">"Times New Roman"</property>
+                        <property name="borderLeftStyle">solid</property>
+                        <property name="borderLeftWidth">medium</property>
+                        <property name="borderRightStyle">solid</property>
+                        <property name="borderRightWidth">medium</property>
+                        <property name="textAlign">center</property>
+                        <property name="contentType">auto</property>
+                        <text-property name="content"><![CDATA[Вас заблокировали:]]></text-property>
+                    </text>
+                </cell>
+                <cell id="88">
+                    <data id="92">
+                        <property name="fontFamily">"Times New Roman"</property>
+                        <property name="borderLeftStyle">solid</property>
+                        <property name="borderLeftWidth">medium</property>
+                        <property name="textAlign">center</property>
+                        <property name="dataSet">CountUsersByBlock</property>
+                        <list-property name="boundDataColumns">
+                            <structure>
+                                <property name="name">record_count</property>
+                                <text-property name="displayName">record_count</text-property>
+                                <expression name="expression" type="javascript">dataSetRow["record_count"]</expression>
+                                <property name="dataType">decimal</property>
+                            </structure>
+                        </list-property>
+                        <property name="resultSetColumn">record_count</property>
+                    </data>
+                </cell>
+            </row>
+        </grid>
         <text id="34">
             <property name="fontFamily">"Times New Roman"</property>
             <property name="fontSize">large</property>
+            <property name="paddingTop">30pt</property>
             <property name="textAlign">center</property>
             <property name="contentType">auto</property>
             <text-property name="content"><![CDATA[Пользователи, которых заблокировал:]]></text-property>
@@ -434,35 +667,10 @@ WHERE b.blocked_user = ?]]></xml-property>
                 </row>
             </footer>
         </table>
-        <table id="36">
-            <column id="49"/>
-            <column id="50"/>
-            <column id="51"/>
-            <header>
-                <row id="37">
-                    <cell id="38"/>
-                    <cell id="39"/>
-                    <cell id="40"/>
-                </row>
-            </header>
-            <detail>
-                <row id="41">
-                    <cell id="42"/>
-                    <cell id="43"/>
-                    <cell id="44"/>
-                </row>
-            </detail>
-            <footer>
-                <row id="45">
-                    <cell id="46"/>
-                    <cell id="47"/>
-                    <cell id="48"/>
-                </row>
-            </footer>
-        </table>
         <text id="52">
             <property name="fontFamily">"Times New Roman"</property>
             <property name="fontSize">large</property>
+            <property name="paddingTop">30pt</property>
             <property name="textAlign">center</property>
             <property name="contentType">auto</property>
             <text-property name="content"><![CDATA[Пользователи, которые заблокировали:]]></text-property>
