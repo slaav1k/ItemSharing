@@ -1,150 +1,40 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org"
-      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
-      lang="en">
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Item Details</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
-  <!-- Подключаем библиотеку flatpickr -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
   <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-
   <style>
-    .parent {
-      display: grid;
-      grid-template-columns: 2fr 1fr; /* 2/3 - карусель, 1/3 - инфо */
-      grid-template-rows: repeat(2, auto);
-      grid-column-gap: 20px;
-      grid-row-gap: 20px;
-    }
-
-    .div1 {
-      grid-area: 1 / 1 / 3 / 2; /* Карусель слева, занимает 2 строки */
-    }
-
-    .div2 {
-      grid-area: 1 / 2 / 2 / 3; /* Верхняя правая часть */
-    }
-
-    .div3 {
-      grid-area: 2 / 2 / 3 / 3; /* Нижняя правая часть */
-    }
-
-    .carousel-inner {
-      position: relative;
-      height: 70vh;
-      max-height: 800px;
-    }
-
-    .carousel-item {
-      height: 100%;
-      width: 100%;
-      overflow: hidden;
-      position: relative;
-    }
-
-    .blurred-background {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background-size: cover;
-      background-position: center;
-      filter: blur(10px);
-      transform: scale(1.2); /* Больше размытия */
-    }
-
-    .foreground-image {
-      position: relative;
-      z-index: 1;
-      width: 100%;
-      height: 100%;
-      object-fit: contain;
-    }
-
-    .carousel-thumbnails {
-      display: flex;
-      justify-content: center;
-      gap: 10px;
-      margin-top: 10px;
-      overflow-x: auto;
-      padding-bottom: 10px;
-    }
-
-    .carousel-thumbnails img {
-      width: 80px;
-      height: 60px;
-      object-fit: cover;
-      cursor: pointer;
-      border: 2px solid transparent;
-    }
-
-    .carousel-thumbnails img.active {
-      border: 2px solid #007bff;
-    }
-    .review-photos {
-      display: flex;
-      gap: 10px;
-      margin-top: 10px;
-    }
-
-    .review-photo-thumbnail {
-      width: 80px;
-      height: 80px;
-      object-fit: cover;
-      cursor: pointer;
-      border-radius: 5px;
-    }
-
-    .owner-circle {
-      display: inline-flex;
-      justify-content: center;
-      align-items: center;
-      width: 30px;
-      height: 30px;
-      border-radius: 50%;
-      font-weight: bold;
-      color: white;
-      font-size: 16px;
-      text-transform: uppercase;
-    }
-
-    .owner-link {
-      text-decoration: none; /* Убираем подчёркивание у ссылки */
-    }
-
-    .owner-circle {
-      display: inline-flex;
-      justify-content: center;
-      align-items: center;
-      width: 30px;
-      height: 30px;
-      border-radius: 50%;
-      font-weight: bold;
-      color: white;
-      font-size: 16px;
-      text-transform: uppercase;
-      margin-left: 8px; /* Отступ от имени */
-    }
-
+    .parent { display: grid; grid-template-columns: 2fr 1fr; grid-template-rows: repeat(2, auto); grid-column-gap: 20px; grid-row-gap: 20px; }
+    .div1 { grid-area: 1 / 1 / 3 / 2; }
+    .div2 { grid-area: 1 / 2 / 2 / 3; }
+    .div3 { grid-area: 2 / 2 / 3 / 3; }
+    .carousel-inner { position: relative; height: 70vh; max-height: 800px; }
+    .carousel-item { height: 100%; width: 100%; overflow: hidden; position: relative; }
+    .blurred-background { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-size: cover; background-position: center; filter: blur(10px); transform: scale(1.2); }
+    .foreground-image { position: relative; z-index: 1; width: 100%; height: 100%; object-fit: contain; }
+    .carousel-thumbnails { display: flex; justify-content: center; gap: 10px; margin-top: 10px; overflow-x: auto; padding-bottom: 10px; }
+    .carousel-thumbnails img { width: 80px; height: 60px; object-fit: cover; cursor: pointer; border: 2px solid transparent; }
+    .carousel-thumbnails img.active { border: 2px solid #007bff; }
+    .review-photos { display: flex; gap: 10px; margin-top: 10px; }
+    .review-photo-thumbnail { width: 80px; height: 80px; object-fit: cover; cursor: pointer; border-radius: 5px; }
+    .owner-circle { display: inline-flex; justify-content: center; align-items: center; width: 30px; height: 30px; border-radius: 50%; font-weight: bold; color: white; font-size: 16px; text-transform: uppercase; margin-left: 8px; }
+    .owner-link { text-decoration: none; }
   </style>
 </head>
 <body>
-
 <nav class="navbar navbar-expand-lg navbar-light bg-light">
   <div class="container-fluid">
     <a class="navbar-brand" href="/">ItemSharing</a>
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
       <span class="navbar-toggler-icon"></span>
     </button>
-
     <div class="collapse navbar-collapse" id="navbarNav">
       <ul class="navbar-nav ms-auto">
-        <!-- Кнопки входа/выхода -->
-        <span sec:authorize="isAuthenticated()">
+                <span sec:authorize="isAuthenticated()">
                     <form th:action="@{/logout}" method="post" style="display:inline;">
                         <a th:href="@{/user/{username}(username=${#authentication.principal.username})}" class="btn btn-primary">Профиль</a>
                         <button type="submit" class="btn btn-danger">Выход</button>
@@ -170,102 +60,94 @@
       <label for="name">Название вещи</label>
       <input type="text" id="name" class="form-control" th:name="name" th:value="${item.name}" required />
     </div>
-
     <!-- Описание товара -->
     <div class="form-group mt-2">
       <label for="description">Описание вещи</label>
       <textarea id="description" class="form-control" th:name="description" required>[[${item.description}]]</textarea>
     </div>
-
     <!-- Адрес -->
     <div class="form-group mt-2">
       <label for="address">Адрес</label>
       <input type="text" id="address" class="form-control" th:name="address" th:value="${item.address}" required />
     </div>
-
-    <!-- Размеры -->
-    <div class="form-group mt-2">
-      <label for="sizes">Размеры</label>
-      <input type="text" id="sizes" class="form-control" th:name="sizes" th:value="${item.sizes}" required />
-    </div>
-
     <!-- Вес товара -->
     <div class="form-group mt-2">
       <label for="weight">Вес</label>
       <input type="number" id="weight" class="form-control" th:name="weight" th:value="${item.weight}" required />
     </div>
-
     <!-- Цвет товара -->
     <div class="form-group mt-2">
-      <label for="color">Цвет</label>
-      <input type="text" id="color" class="form-control" th:name="color" th:value="${item.color}" required />
+      <label for="colorId">Цвет</label>
+      <select id="colorId" name="colorId" class="form-control" required>
+        <option th:each="color : ${colors}"
+                th:value="${color.colorId}"
+                th:text="${color.name}"
+                th:selected="${color.colorId == item.color.colorId}"></option>
+      </select>
     </div>
-
     <!-- Материал товара -->
     <div class="form-group mt-2">
-      <label for="material">Материал</label>
-      <input type="text" id="material" class="form-control" th:name="material" th:value="${item.material}" required />
+      <label for="materialId">Материал</label>
+      <select id="materialId" name="materialId" class="form-control" required>
+        <option th:each="material : ${materials}"
+                th:value="${material.materialId}"
+                th:text="${material.name}"
+                th:selected="${material.materialId == item.material.materialId}"></option>
+      </select>
     </div>
-
     <!-- Производитель -->
     <div class="form-group mt-2">
-      <label for="maker">Производитель</label>
-      <input type="text" id="maker" class="form-control" th:name="maker" th:value="${item.maker}" required />
+      <label for="makerId">Производитель</label>
+      <select id="makerId" name="makerId" class="form-control" required onchange="updateModels()">
+        <option th:each="maker : ${makers}"
+                th:value="${maker.makerId}"
+                th:text="${maker.name}"
+                th:selected="${maker.makerId == item.maker.makerId}"></option>
+      </select>
     </div>
-
     <!-- Модель товара -->
     <div class="form-group mt-2">
-      <label for="model">Модель</label>
-      <input type="text" id="model" class="form-control" th:name="model" th:value="${item.model}" required />
+      <label for="modelId">Модель</label>
+      <select id="modelId" name="modelId" class="form-control" required>
+        <option th:each="model : ${models}"
+                th:value="${model.modelId}"
+                th:text="${model.name}"
+                th:selected="${model.modelId == item.model.modelId}"
+                th:attr="data-maker-id=${model.maker.makerId}"></option>
+      </select>
     </div>
-
     <!-- Год выпуска -->
     <div class="form-group mt-2">
       <label for="releaseYear">Год выпуска</label>
       <input type="number" id="releaseYear" class="form-control" th:name="releaseYear" th:value="${item.releaseYear}" required />
     </div>
-
     <!-- Поля для атрибутов -->
     <div class="form-group">
       <div th:if="${categoryAttributes != null}">
         <div th:each="attribute : ${categoryAttributes}" class="mt-2">
           <label th:text="${attribute.name}">Атрибут</label>
-
-          <!-- Выпадающий список для ENUM -->
           <div th:if="${attribute.type.name() == 'ENUM'}" class="form-group">
-            <select name="filters" th:name="${attribute.name}" class="form-control w-100">
+            <select th:name="${attribute.name}" class="form-control w-100">
               <option value="">Не выбрано</option>
               <option th:each="value : ${enumValuesMap[attribute.attributeId]}"
                       th:value="${value}"
                       th:text="${value}"
-                      th:selected="${attributes[attribute.name]} == ${value}">
-              </option>
+                      th:selected="${attributes[attribute.name] == value}"></option>
             </select>
           </div>
-
           <div th:if="${attribute.type.name() == 'NUMBER'}" class="form-group">
-            <div class="row">
-              <div class="col-12">
-                <input type="number"
-                       th:name="${attribute.name}"
-                       th:value="${attributes[attribute.name]}"
-                       placeholder="Введите значение"
-                       class="form-control" />
-              </div>
-            </div>
+            <input type="number" th:name="${attribute.name}"
+                   th:value="${attributes[attribute.name]}"
+                   placeholder="Введите значение" class="form-control" />
           </div>
-
         </div>
       </div>
     </div>
-
     <!-- Фото товара -->
     <div class="form-group mt-2">
       <label for="photos">Обновить фото</label>
       <input type="file" id="photos" name="photos" class="form-control" multiple />
     </div>
-
-
     <!-- Кнопка отправки формы -->
     <div class="d-flex justify-content-center gap-3 mt-4">
       <button type="submit" class="btn btn-primary btn-lg">Сохранить изменения</button>
@@ -278,18 +160,47 @@
   </form>
 </div>
 
-
-
-
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
-<script>
-  function confirmDelete() {
-    if (confirm("Вы уверены, что хотите удалить эту вещь?")) {
-      document.getElementById("deleteItemForm").submit();
+<script th:inline="javascript">
+  // Передаём все модели в JavaScript
+  const allModels = /*[[${models}]]*/ [];
+  const selectedModelId = /*[[${item.model.modelId}]]*/ null;
+
+  function updateModels() {
+    const makerId = document.getElementById('makerId').value;
+    const modelSelect = document.getElementById('modelId');
+
+    // Очищаем текущие опции
+    modelSelect.innerHTML = '';
+
+    // Фильтруем модели по выбранному makerId
+    const filteredModels = allModels.filter(model => model.maker.makerId == makerId);
+
+    // Добавляем отфильтрованные модели в <select>
+    filteredModels.forEach(model => {
+      const option = document.createElement('option');
+      option.value = model.modelId; // Используем modelId
+      option.text = model.name;
+      option.setAttribute('data-maker-id', model.maker.makerId); // Используем makerId
+      if (model.modelId == selectedModelId) {
+        option.selected = true;
+      }
+      modelSelect.appendChild(option);
+    });
+
+    // Если нет моделей для выбранного производителя, добавляем сообщение
+    if (filteredModels.length === 0) {
+      const option = document.createElement('option');
+      option.value = '';
+      option.text = 'Нет доступных моделей';
+      modelSelect.appendChild(option);
     }
   }
+
+  // Вызываем функцию при загрузке страницы, чтобы установить начальное состояние
+  window.onload = function() {
+    updateModels();
+  };
 </script>
-
-
 </body>
 </html>

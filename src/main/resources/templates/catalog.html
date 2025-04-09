@@ -18,45 +18,44 @@
             background-color: #f8f9fa;
             padding: 20px;
             box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
-            display: none; /* Скрываем панель по умолчанию */
+            display: none;
         }
 
         .filter-panel.active {
-            display: block; /* Показываем панель, если она активна */
+            display: block;
         }
 
         .filter-panel h3 {
             margin-bottom: 20px;
         }
 
-
         .item-card {
             border: 1px solid rgba(221, 221, 221, 0.89);
             padding: 10px;
-            margin-bottom: 30px; /* Увеличиваем отступы между карточками по вертикали */
+            margin-bottom: 30px;
             background-color: #fff;
             text-align: center;
-            height: 100%; /* Чтобы карточки были одинакового размера */
+            height: 100%;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
-            border-radius: 0; /* Убираем круглые границы */
-            box-shadow: none; /* Убираем тени */
+            border-radius: 0;
+            box-shadow: none;
         }
 
         .item-card img {
-            width: 100%; /* Растягиваем на всю ширину карточки */
-            height: 200px; /* Задаем фиксированную высоту */
-            object-fit: cover; /* Изображение будет заполнять блок */
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
         }
 
         .item-title {
             font-size: 1.2em;
             font-weight: bold;
             margin-top: 10px;
-            white-space: nowrap; /* Запрещаем перенос строк */
-            overflow: hidden; /* Обрезаем, если не помещается */
-            text-overflow: ellipsis; /* Добавляем "..." */
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         .item-address {
@@ -76,49 +75,40 @@
             color: red;
         }
 
-        /* Для фиксации шапки */
         .navbar {
             position: fixed;
             top: 0;
             width: 100%;
-            z-index: 1000; /* Чтобы шапка была всегда поверх */
+            z-index: 1000;
         }
 
         .content {
-            padding-top: 80px; /* Добавляем отступ сверху, чтобы не перекрывалась шапкой */
+            padding-top: 80px;
         }
 
-        /* Центрирование блока с объявлениями */
         .main-content {
             display: flex;
-            justify-content: center; /* Центрируем по горизонтали */
+            justify-content: center;
         }
 
         .content-wrapper {
-            max-width: 1200px; /* Ограничиваем максимальную ширину */
-            width: 100%; /* Чтобы занимала всю доступную ширину, но не выходила за пределы */
+            max-width: 1200px;
+            width: 100%;
         }
 
-        /* Уменьшаем горизонтальные отступы между карточками */
         .row {
-            gap: 10px; /* Добавляем небольшой горизонтальный промежуток между карточками */
+            gap: 10px;
         }
 
-        /* Уменьшаем отступы между строками карточек */
         .col-md-3 {
-            margin-bottom: 20px; /* Уменьшаем вертикальные отступы между строками */
+            margin-bottom: 20px;
+            flex: 1 1 23%;
+            max-width: 23%;
         }
 
-        /* Обеспечиваем, чтобы карточки корректно отображались на экранах среднего и большого размера */
-        .col-md-3 {
-            flex: 1 1 23%; /* Устанавливаем карточкам ширину в 23%, чтобы они занимали 4 колонки */
-            max-width: 23%; /* Ограничиваем максимальную ширину для 4-х колонок */
-        }
-
-        /* Скрываем 4-й столбец на экранах малого размера */
         @media (max-width: 1200px) {
             .col-md-3:nth-child(4) {
-                display: none; /* Скрыть 4-й столбец */
+                display: none;
             }
         }
     </style>
@@ -130,27 +120,23 @@
     <div class="container-fluid">
         <a class="navbar-brand" href="#">ItemSharing</a>
 
-        <!-- Форма фильтрации категорий, расположенная в навигационной панели -->
         <form class="d-flex ms-3" method="get" th:action="@{/}">
             <div class="form-group">
                 <select name="category" id="category" class="form-control" onchange="this.form.submit()">
                     <option value="" disabled selected>Выберите категорию</option>
-                    <option value="" th:selected="${category == null}">Все категории</option> <!-- Элемент "Все категории" -->
+                    <option value="" th:selected="${category == null}">Все категории</option>
                     <option th:each="cat : ${categories}" th:value="${cat.categoryId}" th:text="${cat.name}"
                             th:selected="${cat.categoryId == category}"></option>
                 </select>
             </div>
         </form>
 
-        <!-- Кнопка для раскрытия меню на мобильных устройствах -->
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
         </button>
 
-        <!-- Меню для мобильных устройств -->
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav ms-auto">
-                <!-- Кнопки входа/выхода -->
                 <span sec:authorize="isAuthenticated()">
                     <form th:action="@{/logout}" method="post" style="display:inline;">
                         <a th:href="@{/user/{username}(username=${#authentication.principal.username})}" class="btn btn-primary">Профиль</a>
@@ -167,7 +153,7 @@
     </div>
 </nav>
 
-<!-- Основной контент страницы -->
+<!-- Основной контент -->
 <div class="container-fluid content">
     <div class="row mt-4">
         <div class="col-12 main-content">
@@ -183,8 +169,8 @@
                                 <div class="item-address">
                                     <span th:text="${#strings.length(i.address) > 25 ? #strings.substring(i.address, 0, 25) + '...' : i.address}">Адрес</span>
                                 </div>
-                                <div th:classappend="${i.isAvailable} ? 'item-availability' : 'item-unavailable'"
-                                     th:text="${i.isAvailable} ? 'Доступно' : 'Недоступно'">
+                                <div th:classappend="${i.available} ? 'item-availability' : 'item-unavailable'"
+                                     th:text="${i.available} ? 'Доступно' : 'Недоступно'">
                                     Доступно
                                 </div>
                             </div>
@@ -196,7 +182,7 @@
     </div>
 </div>
 
-<!-- Панель фильтров слева -->
+<!-- Панель фильтров -->
 <div class="filter-panel" th:classappend="${category != null} ? 'active' : ''">
     <h3>Фильтры:</h3>
     <form method="GET" action="/">
@@ -204,10 +190,8 @@
         <div th:if="${categoryAttributes != null}">
             <div th:each="attribute : ${categoryAttributes}">
                 <label th:text="${attribute.name}">Атрибут</label>
-
-                <!-- Выпадающий список для ENUM -->
                 <div th:if="${attribute.type.name() == 'ENUM'}">
-                    <select name="filters" th:name="${attribute.name}">
+                    <select th:name="${attribute.name}">
                         <option value="">Не выбрано</option>
                         <option th:each="value : ${enumValuesMap[attribute.attributeId]}"
                                 th:value="${value}" th:text="${value}"
@@ -215,23 +199,18 @@
                         </option>
                     </select>
                 </div>
-
-                <!-- Поля ввода для NUMBER -->
                 <div th:if="${attribute.type.name() == 'NUMBER'}">
-                    <input type="number" th:name="${attribute.name} + '_min'" placeholder="От"
+                    <input type="number" th:name="${attribute.name + '_min'}" placeholder="От"
                            th:value="${filters[attribute.name + '_min']}" />
-                    <input type="number" th:name="${attribute.name} + '_max'" placeholder="До"
+                    <input type="number" th:name="${attribute.name + '_max'}" placeholder="До"
                            th:value="${filters[attribute.name + '_max']}" />
                 </div>
             </div>
         </div>
-
         <button type="submit">Применить фильтры</button>
         <a th:href="@{/?category={category}(category=${category})}">Сбросить фильтры</a>
     </form>
 </div>
-
-
 
 <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.10.2/dist/umd/popper.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/js/bootstrap.min.js"></script>

@@ -298,12 +298,11 @@
         <div class="div2">
             <p class="card-text"><strong>Описание:</strong> <span th:text="${item.description}">Описание товара</span></p>
             <p class="card-text"><strong>Категория:</strong> <span th:text="${item.category}">Категория</span></p>
-            <p class="card-text"><strong>Размеры:</strong> <span th:text="${item.sizes}">Размеры</span></p>
             <p class="card-text"><strong>Вес:</strong> <span th:text="${item.weight}">Вес</span></p>
-            <p class="card-text"><strong>Цвет:</strong> <span th:text="${item.color}">Цвет</span></p>
-            <p class="card-text"><strong>Материал:</strong> <span th:text="${item.material}">Материал</span></p>
-            <p class="card-text"><strong>Производитель:</strong> <span th:text="${item.maker}">Производитель</span></p>
-            <p class="card-text"><strong>Модель:</strong> <span th:text="${item.model}">Модель</span></p>
+            <p class="card-text"><strong>Цвет:</strong> <span th:text="${item.color.name}">Цвет</span></p>
+            <p class="card-text"><strong>Материал:</strong> <span th:text="${item.material.name}">Материал</span></p>
+            <p class="card-text"><strong>Производитель:</strong> <span th:text="${item.maker.name}">Производитель</span></p>
+            <p class="card-text"><strong>Модель:</strong> <span th:text="${item.model.name}">Модель</span></p>
             <p class="card-text"><strong>Год выпуска:</strong> <span th:text="${item.releaseYear}">Год выпуска</span></p>
             <p class="card-text" th:each="entry : ${attributes}">
                 <strong th:text="${entry.key}"></strong>: <span th:text="${entry.value}"></span>

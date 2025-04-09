@@ -60,6 +60,18 @@ public class ItemController {
     private AttributeEnumValueRepository attributeEnumValueRepository;
 
     @Autowired
+    private ColorRepository colorRepository;
+
+    @Autowired
+    private MaterialRepository materialRepository;
+
+    @Autowired
+    private MakerRepository makerRepository;
+
+    @Autowired
+    private ModelRepository modelRepository;
+
+    @Autowired
     private ServletContext servletContext;
 
     @GetMapping("/item/{itemId}")
@@ -321,6 +333,12 @@ public class ItemController {
             }
         }
 
+        // Загружаем все значения для выпадающих списков
+        List<Color> colors = colorRepository.findAll();
+        List<Material> materials = materialRepository.findAll();
+        List<Maker> makers = makerRepository.findAll();
+        List<rsreu.itemsharing.entities.Model> models = modelRepository.findAll();
+
 
         // Добавляем атрибуты в модель, чтобы можно было их заполнить
         model.addAttribute("newItem", newItem);
@@ -328,7 +346,10 @@ public class ItemController {
         model.addAttribute("enumValuesMap", enumValuesMap);
         model.addAttribute("categories", categoryRepository.findAll());
         model.addAttribute("category", categoryEntity); // Для отображения информации о категории
-
+        model.addAttribute("colors", colors);
+        model.addAttribute("materials", materials);
+        model.addAttribute("makers", makers);
+        model.addAttribute("models", models);
         // Возвращаем страницу с формой для создания товара
         return "createItem";
     }
@@ -339,6 +360,10 @@ public class ItemController {
                            @RequestParam Long categoryId,
                            @RequestParam Map<String, String> attributes,
                            @RequestParam("photos") MultipartFile[] photos,
+                           @RequestParam("colorId") Long colorId,
+                           @RequestParam("materialId") Long materialId,
+                           @RequestParam("makerId") Long makerId,
+                           @RequestParam("modelId") Long modelId,
                            Model model) {
 
         CustomUserDetails customUserDetails = (CustomUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
@@ -348,6 +373,12 @@ public class ItemController {
         Category category = categoryRepository.findById(categoryId).orElseThrow();
         newItem.setCategory(category);
         newItem.setOwner(currentUser);
+
+        // Устанавливаем сущности по их ID
+        newItem.setColor(colorRepository.findById(colorId).orElseThrow());
+        newItem.setMaterial(materialRepository.findById(materialId).orElseThrow());
+        newItem.setMaker(makerRepository.findById(makerId).orElseThrow());
+        newItem.setModel(modelRepository.findById(modelId).orElseThrow());
 
         itemRepository.save(newItem);
 
@@ -454,13 +485,26 @@ public class ItemController {
             }
 
         }
-        model.addAttribute("attributes", attributeMap);
 
+        // Загружаем все значения для выпадающих списков
+        List<Color> colors = colorRepository.findAll();
+        List<Material> materials = materialRepository.findAll();
+        List<Maker> makers = makerRepository.findAll();
+        List<rsreu.itemsharing.entities.Model> models = modelRepository.findAll();
+
+
+
+        model.addAttribute("attributes", attributeMap);
         model.addAttribute("item", item);
         model.addAttribute("categoryAttributes", attributes);
         model.addAttribute("enumValuesMap", enumValuesMap);
         model.addAttribute("categories", categoryRepository.findAll());
         model.addAttribute("category", item.getCategory());
+        model.addAttribute("colors", colors);
+        model.addAttribute("materials", materials);
+        model.addAttribute("makers", makers);
+        model.addAttribute("models", models);
+        model.addAttribute("selectedMakerId", item.getMaker().getMakerId());
         return "editItem";
     }
 
@@ -468,18 +512,22 @@ public class ItemController {
     @PostMapping("/updateItem")
     public String updateItem(@ModelAttribute Item updatedItem,
                              @RequestParam Map<String, String> attributes,
-                             @RequestParam("photos") MultipartFile[] photos) {
+                             @RequestParam("photos") MultipartFile[] photos,
+                             @RequestParam("colorId") Long colorId,
+                             @RequestParam("materialId") Long materialId,
+                             @RequestParam("makerId") Long makerId,
+                             @RequestParam("modelId") Long modelId) {
 
         Item item = itemRepository.findById(updatedItem.getItemId()).orElseThrow();
         item.setName(updatedItem.getName());
         item.setDescription(updatedItem.getDescription());
         item.setAddress(updatedItem.getAddress());
-        item.setSizes(updatedItem.getSizes());
         item.setWeight(updatedItem.getWeight());
-        item.setColor(updatedItem.getColor());
-        item.setMaterial(updatedItem.getMaterial());
-        item.setMaker(updatedItem.getMaker());
-        item.setModel(updatedItem.getModel());
+
+        item.setColor(colorRepository.findById(colorId).orElseThrow());
+        item.setMaterial(materialRepository.findById(materialId).orElseThrow());
+        item.setMaker(makerRepository.findById(makerId).orElseThrow());
+        item.setModel(modelRepository.findById(modelId).orElseThrow());
         item.setReleaseYear(updatedItem.getReleaseYear());
 
         itemRepository.save(item);

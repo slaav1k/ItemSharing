@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.UUID;
 
 @Entity
-@Table(name = "item") // Соответствие таблице в БД
+@Table(name = "item")
 public class Item {
 
     @Id
@@ -34,23 +34,24 @@ public class Item {
     @Column(name = "is_available", nullable = false)
     private boolean isAvailable;
 
-    @Column(name = "sizes", nullable = false, length = 255)
-    private String sizes;
-
     @Column(name = "weight", nullable = false)
     private double weight;
 
-    @Column(name = "color", nullable = false, length = 255)
-    private String color;
+    @ManyToOne
+    @JoinColumn(name = "color", nullable = false)
+    private Color color;
 
-    @Column(name = "material", nullable = false, length = 255)
-    private String material;
+    @ManyToOne
+    @JoinColumn(name = "material", nullable = false)
+    private Material material;
 
-    @Column(name = "maker", nullable = false, length = 255)
-    private String maker;
+    @ManyToOne
+    @JoinColumn(name = "maker", nullable = false)
+    private Maker maker;
 
-    @Column(name = "model", nullable = false, length = 255)
-    private String model;
+    @ManyToOne
+    @JoinColumn(name = "model", nullable = false)
+    private Model model;
 
     @Column(name = "release_year", nullable = false)
     private long releaseYear;
@@ -58,13 +59,15 @@ public class Item {
     @OneToMany(mappedBy = "item")
     private List<ItemPhotoLink> itemPhotoLinks = new ArrayList<>();
 
+    // Конструктор по умолчанию
     public Item() {
-        itemId = UUID.randomUUID().toString();
+        this.itemId = UUID.randomUUID().toString();
     }
 
+    // Полный конструктор
     public Item(String itemId, User owner, String name, Category category, String description, String address,
-                boolean isAvailable, String sizes, double weight, String color, String material,
-                String maker, String model, long releaseYear) {
+                boolean isAvailable, double weight, Color color, Material material, Maker maker, Model model,
+                long releaseYear) {
         this.itemId = itemId;
         this.owner = owner;
         this.name = name;
@@ -72,7 +75,6 @@ public class Item {
         this.description = description;
         this.address = address;
         this.isAvailable = isAvailable;
-        this.sizes = sizes;
         this.weight = weight;
         this.color = color;
         this.material = material;
@@ -81,6 +83,7 @@ public class Item {
         this.releaseYear = releaseYear;
     }
 
+    // Геттеры и сеттеры
     public String getItemId() {
         return itemId;
     }
@@ -134,15 +137,7 @@ public class Item {
     }
 
     public void setAvailable(boolean available) {
-        isAvailable = available;
-    }
-
-    public String getSizes() {
-        return sizes;
-    }
-
-    public void setSizes(String sizes) {
-        this.sizes = sizes;
+        this.isAvailable = available;
     }
 
     public double getWeight() {
@@ -153,35 +148,35 @@ public class Item {
         this.weight = weight;
     }
 
-    public String getColor() {
+    public Color getColor() {
         return color;
     }
 
-    public void setColor(String color) {
+    public void setColor(Color color) {
         this.color = color;
     }
 
-    public String getMaterial() {
+    public Material getMaterial() {
         return material;
     }
 
-    public void setMaterial(String material) {
+    public void setMaterial(Material material) {
         this.material = material;
     }
 
-    public String getMaker() {
+    public Maker getMaker() {
         return maker;
     }
 
-    public void setMaker(String maker) {
+    public void setMaker(Maker maker) {
         this.maker = maker;
     }
 
-    public String getModel() {
+    public Model getModel() {
         return model;
     }
 
-    public void setModel(String model) {
+    public void setModel(Model model) {
         this.model = model;
     }
 
