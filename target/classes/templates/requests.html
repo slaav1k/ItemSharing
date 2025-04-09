@@ -163,11 +163,24 @@
                 <td th:text="${request.status.description}"></td>
                 <td th:utext="${request.startDate} + '<br>' + ${request.endDate}"></td>
                 <td class="action-buttons">
-                    <form th:action="@{/requests/cancel}" method="post">
+                    <form th:action="@{/requests/cancel}" method="post" th:if="${request.status.statusId == 1}">
                         <input type="hidden" name="requestId" th:value="${request.requestId}">
                         <button type="submit" class="btn-table cancel">Отменить</button>
                     </form>
+
+                    <!-- Показываем кнопку подтверждения, если статус == 2 -->
+                    <form th:action="@{/requests/confirmReceipt}" method="post" th:if="${request.status.statusId == 2}">
+                        <input type="hidden" name="requestId" th:value="${request.requestId}">
+                        <button type="submit" class="btn-table approve">Подтвердить получение</button>
+                    </form>
+
+                    <!-- Показываем кнопку подтверждения, если статус == 3 -->
+                    <form th:action="@{/requests/makeReturn}" method="post" th:if="${request.status.statusId == 3}">
+                        <input type="hidden" name="requestId" th:value="${request.requestId}">
+                        <button type="submit" class="btn-table reject">Вернуть вещь</button>
+                    </form>
                 </td>
+
             </tr>
             </tbody>
         </table>
@@ -193,15 +206,35 @@
                 <td th:text="${request.status.description}"></td>
                 <td th:utext="${request.startDate} + '<br>' + ${request.endDate}"></td>
                 <td class="action-buttons">
-                    <form th:action="@{/requests/approve}" method="post">
-                        <input type="hidden" name="requestId" th:value="${request.requestId}">
-                        <button type="submit" class="btn-table approve">Принять</button>
-                    </form>
-                    <form th:action="@{/requests/reject}" method="post">
+                    <div th:if="${request.status.statusId == 1}">
+                        <form th:action="@{/requests/approve}" method="post">
+                            <input type="hidden" name="requestId" th:value="${request.requestId}">
+                            <button type="submit" class="btn-table approve">Принять</button>
+                        </form>
+                        <form th:action="@{/requests/reject}" method="post">
+                            <input type="hidden" name="requestId" th:value="${request.requestId}">
+                            <button type="submit" class="btn-table reject">Отклонить</button>
+                        </form>
+                    </div>
+
+                    <form th:action="@{/requests/reject}" method="post" th:if="${request.status.statusId == 2}">
                         <input type="hidden" name="requestId" th:value="${request.requestId}">
                         <button type="submit" class="btn-table reject">Отклонить</button>
                     </form>
+
+                    <!-- Кнопка Запросить возврат для статуса 3 -->
+                    <form th:action="@{/requests/requestReturn}" method="post" th:if="${request.status.statusId == 3}">
+                        <input type="hidden" name="requestId" th:value="${request.requestId}">
+                        <button type="submit" class="btn-table reject">Запросить возврат</button>
+                    </form>
+
+                    <!-- Кнопка Вещь у меня для статуса 4 -->
+                    <form th:action="@{/requests/confirmReturn}" method="post" th:if="${request.status.statusId == 4}">
+                        <input type="hidden" name="requestId" th:value="${request.requestId}">
+                        <button type="submit" class="btn-table approve">Подтвердить возврат</button>
+                    </form>
                 </td>
+
             </tr>
             </tbody>
         </table>

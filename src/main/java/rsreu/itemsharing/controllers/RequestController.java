@@ -14,6 +14,7 @@ import rsreu.itemsharing.entities.RequestStatus;
 import rsreu.itemsharing.entities.User;
 import rsreu.itemsharing.laba4.Birt;
 import rsreu.itemsharing.repositories.RequestRepository;
+import rsreu.itemsharing.repositories.RequestStatusRepository;
 import rsreu.itemsharing.repositories.UserRepository;
 import rsreu.itemsharing.security.CustomUserDetails;
 
@@ -30,11 +31,13 @@ public class RequestController {
     private final RequestRepository requestRepository;
     private final UserRepository userRepository;
     private final ReportService reportService;
+    private final RequestStatusRepository requestStatusRepository;
 
-    public RequestController(final RequestRepository requestRepository, final UserRepository userRepository, ReportService reportService) {
+    public RequestController(final RequestRepository requestRepository, final UserRepository userRepository, ReportService reportService, RequestStatusRepository requestStatusRepository) {
         this.requestRepository = requestRepository;
         this.userRepository = userRepository;
         this.reportService = reportService;
+        this.requestStatusRepository = requestStatusRepository;
     }
 
     @GetMapping("/requests")
@@ -53,22 +56,65 @@ public class RequestController {
 
     @PostMapping("/requests/cancel")
     public String cancelRequest(@RequestParam Long requestId) {
-        requestRepository.deleteById(requestId);
+        Request request = requestRepository.findById(requestId).orElseThrow();
+        RequestStatus status = requestStatusRepository.findById(7L).orElseThrow();
+        request.setStatus(status);
+        requestRepository.save(request);
         return "redirect:/requests";
     }
 
     @PostMapping("/requests/approve")
     public String approveRequest(@RequestParam Long requestId) {
         Request request = requestRepository.findById(requestId).orElseThrow();
-        request.setStatus(new RequestStatus(2, "Approved", "Заявка одобрена."));
+        RequestStatus status = requestStatusRepository.findById(2L).orElseThrow();
+        request.setStatus(status);
         requestRepository.save(request);
         return "redirect:/requests";
     }
 
+    @PostMapping("/requests/confirmReceipt")
+    public String confirmReceipt(@RequestParam Long requestId) {
+        Request request = requestRepository.findById(requestId).orElseThrow();
+        RequestStatus status = requestStatusRepository.findById(3L).orElseThrow(); // Статус: "Вещь в пользовании"
+        request.setStatus(status);
+        requestRepository.save(request);
+        return "redirect:/requests";
+    }
+
+    @PostMapping("/requests/makeReturn")
+    public String makeReturn(@RequestParam Long requestId) {
+        Request request = requestRepository.findById(requestId).orElseThrow();
+        RequestStatus status = requestStatusRepository.findById(4L).orElseThrow(); // Статус: "Вещь в пользовании"
+        request.setStatus(status);
+        requestRepository.save(request);
+        return "redirect:/requests";
+    }
+
+    @PostMapping("/requests/requestReturn")
+    public String requestReturn(@RequestParam Long requestId) {
+        Request request = requestRepository.findById(requestId).orElseThrow();
+        RequestStatus status = requestStatusRepository.findById(4L).orElseThrow(); // "Ожидает возврат вещи"
+        request.setStatus(status);
+        requestRepository.save(request);
+        return "redirect:/requests";
+    }
+
+    @PostMapping("/requests/confirmReturn")
+    public String confirmReturn(@RequestParam Long requestId) {
+        Request request = requestRepository.findById(requestId).orElseThrow();
+        RequestStatus status = requestStatusRepository.findById(5L).orElseThrow(); // "Заявка выполнена. Вещь у владельца"
+        request.setStatus(status);
+        requestRepository.save(request);
+        return "redirect:/requests";
+    }
+
+
+
     @PostMapping("/requests/reject")
     public String rejectRequest(@RequestParam Long requestId) {
         Request request = requestRepository.findById(requestId).orElseThrow();
-        request.setStatus(new RequestStatus(5, "Rejected", "Заявка отклонена."));
+        RequestStatus status = requestStatusRepository.findById(6L).orElseThrow();
+        request.setStatus(status);
         requestRepository.save(request);
         return "redirect:/requests";
     }

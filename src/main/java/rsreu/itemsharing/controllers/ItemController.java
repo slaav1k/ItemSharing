@@ -117,15 +117,18 @@ public class ItemController {
 
         // Обрабатываем каждый запрос на бронирование
         for (Request request : requests) {
-            LocalDate startDate = request.getStartDate();
-            LocalDate endDate = request.getEndDate();
+            if (request.getStatus().getStatusId() >= 2 && request.getStatus().getStatusId() <= 4) {
+                LocalDate startDate = request.getStartDate();
+                LocalDate endDate = request.getEndDate();
 
-            // Добавляем все даты из диапазона в список забронированных дат
-            while (!startDate.isAfter(endDate)) {
-                // Форматируем дату в строку и добавляем в список
-                bookedDates.add(startDate.toString());
-                startDate = startDate.plusDays(1);
+                // Добавляем все даты из диапазона в список забронированных дат
+                while (!startDate.isAfter(endDate)) {
+                    // Форматируем дату в строку и добавляем в список
+                    bookedDates.add(startDate.toString());
+                    startDate = startDate.plusDays(1);
+                }
             }
+
         }
         System.out.println(bookedDates);
         model.addAttribute("bookedDates", bookedDates);
