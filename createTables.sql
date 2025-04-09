@@ -13,6 +13,10 @@ DROP TABLE IF EXISTS "request_status";
 DROP TABLE IF EXISTS "item";
 DROP TABLE IF EXISTS "category";
 DROP TABLE IF EXISTS "users";
+DROP TABLE IF EXISTS "color";
+DROP TABLE IF EXISTS "material";
+DROP TABLE IF EXISTS "maker";
+DROP TABLE IF EXISTS "model";
 
 CREATE TABLE "users" (
     "passport_num" BIGINT NOT NULL,
@@ -31,6 +35,35 @@ CREATE TABLE "category" (
     PRIMARY KEY("category_id")
 );
 
+CREATE TABLE "color" (
+    "color_id" BIGSERIAL NOT NULL,
+    "name" VARCHAR(50) NOT NULL,
+    PRIMARY KEY("color_id")
+);
+
+CREATE TABLE "material" (
+    "material_id" BIGSERIAL NOT NULL,
+    "name" VARCHAR(50) NOT NULL,
+    PRIMARY KEY("material_id")
+);
+
+CREATE TABLE "maker" (
+    "maker_id" BIGSERIAL NOT NULL,
+    "name" VARCHAR(50) NOT NULL,
+    "country" VARCHAR(255) NOT NULL,
+    "year_of_foundation" BIGINT NOT NULL CHECK ("year_of_foundation" <= EXTRACT(YEAR FROM CURRENT_DATE)),
+    PRIMARY KEY("maker_id")
+);
+
+CREATE TABLE "model" (
+    "model_id" BIGSERIAL NOT NULL,
+    "name" VARCHAR(50) NOT NULL,
+    "maker" BIGINT NOT NULL,
+    PRIMARY KEY("model_id"),
+    FOREIGN KEY("maker") REFERENCES "maker"("maker_id")
+);
+
+
 CREATE TABLE "item" (
     "item_id" VARCHAR(100) NOT NULL,
     "owner" BIGINT NOT NULL,
@@ -39,16 +72,19 @@ CREATE TABLE "item" (
     "description" VARCHAR(255) NOT NULL,
     "address" VARCHAR(255) NOT NULL,
     "is_available" BOOLEAN NOT NULL,
-    "sizes" VARCHAR(255) NOT NULL,
     "weight" DOUBLE PRECISION NOT NULL,
-    "color" VARCHAR(255) NOT NULL,
-    "material" VARCHAR(255) NOT NULL,
-    "maker" VARCHAR(255) NOT NULL,
-    "model" VARCHAR(255) NOT NULL,
+    "color" BIGINT NOT NULL,
+    "material" BIGINT NOT NULL,
+    "maker" BIGINT NOT NULL,
+    "model" BIGINT NOT NULL,
     "release_year" BIGINT NOT NULL,
     PRIMARY KEY("item_id"),
     FOREIGN KEY("owner") REFERENCES "users"("passport_num"),
-    FOREIGN KEY("category") REFERENCES "category"("category_id")
+    FOREIGN KEY("category") REFERENCES "category"("category_id"),
+    FOREIGN KEY("color") REFERENCES "color"("color_id"),
+    FOREIGN KEY("material") REFERENCES "material"("material_id"),
+    FOREIGN KEY("maker") REFERENCES "maker"("maker_id"),
+    FOREIGN KEY("model") REFERENCES "model"("model_id")
 );
 
 CREATE TABLE "request_status" (
@@ -65,6 +101,7 @@ CREATE TABLE "request" (
     "start_date" DATE NOT NULL,
     "end_date" DATE NOT NULL,
     "status" BIGINT NOT NULL,
+    "current_date_time" TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY("request_id"),
     FOREIGN KEY("item") REFERENCES "item"("item_id"),
     FOREIGN KEY("status") REFERENCES "request_status"("status_id"),
