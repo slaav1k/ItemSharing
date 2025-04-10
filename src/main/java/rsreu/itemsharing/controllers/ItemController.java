@@ -369,13 +369,12 @@ public class ItemController {
 
         CustomUserDetails customUserDetails = (CustomUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         User currentUser = customUserDetails.getUser();
-        // Сохраняем товар
+
+        // Настройка объекта Item
         newItem.setAvailable(true);
         Category category = categoryRepository.findById(categoryId).orElseThrow();
         newItem.setCategory(category);
         newItem.setOwner(currentUser);
-
-        // Устанавливаем сущности по их ID
         newItem.setColor(colorRepository.findById(colorId).orElseThrow());
         newItem.setMaterial(materialRepository.findById(materialId).orElseThrow());
         newItem.setMaker(makerRepository.findById(makerId).orElseThrow());
@@ -383,70 +382,99 @@ public class ItemController {
 
         itemRepository.save(newItem);
 
-        // Сохраняем атрибуты
+        // Сохранение атрибутов
         for (Map.Entry<String, String> entry : attributes.entrySet()) {
             String attributeName = entry.getKey();
             String value = entry.getValue();
 
-            // Пропускаем атрибуты с именами из латинских букв
             if (attributeName.matches("^[a-zA-Z]+$")) {
                 continue;
             }
 
-            // Остальная логика обработки атрибута
             Attribute attribute = attributeRepository.findByName(attributeName);
             if (attribute == null) {
                 continue;
             }
 
-
-            // Создаем новый ItemAttribute
             ItemAttributeId itemAttributeId = new ItemAttributeId(newItem.getItemId(), attribute.getAttributeId());
             ItemAttribute itemAttribute = new ItemAttribute();
             itemAttribute.setId(itemAttributeId);
             itemAttribute.setValue(value);
-
             itemAttributeRepository.save(itemAttribute);
         }
 
         // Обрабатываем загрузку фото
-        if (photos != null && photos.length > 0) {
+        if (photos != null && photos.length > 0 && !photos[0].isEmpty()) {
             String uploadDir = "C:\\Java Projects\\ItemSharing\\src\\main\\resources\\static\\images\\items";
-
-            // Создаем папку, если она не существует
             File directory = new File(uploadDir);
+
+            // Проверяем и создаём директорию
             if (!directory.exists()) {
                 boolean dirCreated = directory.mkdirs();
                 if (!dirCreated) {
+                    System.err.println("Не удалось создать директорию: " + uploadDir);
                     return "error";
                 }
             }
 
+            // Проверяем права на запись
+            if (!directory.canWrite()) {
+                System.err.println("Нет прав на запись в директорию: " + uploadDir);
+                return "error";
+            }
+
             for (MultipartFile photo : photos) {
-                Path filePath = Paths.get(uploadDir, photo.getOriginalFilename());
+                if (photo.isEmpty()) {
+                    continue; // Пропускаем пустые файлы
+                }
+
+                String originalFilename = photo.getOriginalFilename();
+                if (originalFilename == null || originalFilename.isEmpty()) {
+                    originalFilename = "photo_" + System.currentTimeMillis() + ".jpg";
+                }
+
+                // Генерируем уникальное имя файла
+                String uniqueFileName = generateUniqueFileName(originalFilename, uploadDir);
+                Path filePath = Paths.get(uploadDir, uniqueFileName);
 
                 try {
                     photo.transferTo(filePath.toFile());
 
-                    // Создаем ссылку на фото
                     PhotoLink photoLink = new PhotoLink();
-                    photoLink.setUrl("items/" + photo.getOriginalFilename());
+                    photoLink.setUrl("items/" + uniqueFileName);
                     photoLinkRepository.save(photoLink);
-
-                    // Сохраняем связь с товаром
 
                     ItemPhotoLinkId itemPhotoLinkId = new ItemPhotoLinkId(newItem.getItemId(), photoLink.getPhotoId());
                     ItemPhotoLink itemPhotoLink = new ItemPhotoLink(itemPhotoLinkId, newItem, photoLink);
                     itemPhotoLinkRepository.save(itemPhotoLink);
                 } catch (IOException e) {
+                    System.err.println("Ошибка при сохранении файла: " + filePath + " - " + e.getMessage());
                     e.printStackTrace();
                     return "error";
                 }
             }
         }
 
-        // Перенаправляем на страницу товара
         return "redirect:/item/" + newItem.getItemId();
+    }
+
+    // Вспомогательный метод для генерации уникального имени файла
+    private String generateUniqueFileName(String originalFilename, String uploadDir) {
+        String baseName = originalFilename.substring(0, originalFilename.lastIndexOf("."));
+        String extension = originalFilename.substring(originalFilename.lastIndexOf("."));
+        String uniqueFileName = baseName + "_" + System.currentTimeMillis() + extension;
+
+        File file = new File(uploadDir, uniqueFileName);
+        int counter = 1;
+
+        // Проверяем, существует ли файл, и добавляем счётчик при необходимости
+        while (file.exists()) {
+            uniqueFileName = baseName + "_" + System.currentTimeMillis() + "_" + counter + extension;
+            file = new File(uploadDir, uniqueFileName);
+            counter++;
+        }
+
+        return uniqueFileName;
     }
 
     @GetMapping("/editItem/{itemId}")

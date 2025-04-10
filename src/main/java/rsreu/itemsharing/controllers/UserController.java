@@ -182,7 +182,7 @@ public class UserController {
 
         // Фильтруем заявки, где статус = 2 (одобрено) и текущая дата входит в диапазон дат заявки
         for (Request request : bookingRequests) {
-            if (request.getStatus().getStatusId() == 2
+            if (request.getStatus().getStatusId() == 3
                     && !today.isBefore(request.getStartDate()) && !today.isAfter(request.getEndDate())) {
                 itemsInUse.add(request);  // Добавляем заявку, если статус "одобрено" и текущая дата в пределах диапазона
             }
