@@ -144,6 +144,7 @@ public class ItemController {
         }
         System.out.println(bookedDates);
         model.addAttribute("bookedDates", bookedDates);
+        model.addAttribute("owner", item.getOwner());
         return "itemCard";
     }
 

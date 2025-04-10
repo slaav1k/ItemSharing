@@ -195,16 +195,50 @@
                 <th>Вещь</th>
                 <th>Заявитель</th>
                 <th>Статус</th>
-                <th>Срок пользования</th> <!-- Добавляем столбец для дат -->
+                <th>Срок пользования</th>
+                <th>Связаться</th> <!-- Новый столбец -->
                 <th>Действия</th>
             </tr>
             </thead>
             <tbody>
             <tr th:each="request : ${incomingRequests}">
                 <td><a th:href="@{/item/{itemId}(itemId=${request.item.itemId})}" class="clickable" th:text="${request.item.name}"></a></td>
-                <td><a th:href="@{/user/{username}(username=${request.holder.passportNum})}" class="clickable" th:text="${request.holder.fullName}"></a></td>
+                <td>
+                    <a th:href="@{/user/{username}(username=${request.holder.passportNum})}" class="clickable" th:text="${request.holder.fullName}"></a>
+                </td>
                 <td th:text="${request.status.description}"></td>
                 <td th:utext="${request.startDate} + '<br>' + ${request.endDate}"></td>
+                <!-- Новый столбец "Связаться" -->
+                <td>
+                    <button class="btn white-btn"
+                            th:attr="data-bs-target='#contactModal-' + ${request.holder.passportNum}"
+                            data-bs-toggle="modal">🤙💬</button>
+
+                    <!-- Модальное окно для контактов -->
+                    <div class="modal fade"
+                         th:id="'contactModal-' + ${request.holder.passportNum}"
+                         tabindex="-1"
+                         th:attr="aria-labelledby='contactModalLabel-' + ${request.holder.passportNum}"
+                         aria-hidden="true">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title"
+                                        th:id="'contactModalLabel-' + ${request.holder.passportNum}">Контакты заявителя</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <p><strong>Имя:</strong> <span th:text="${request.holder.fullName}">Имя владельца</span></p>
+                                    <p><strong>Телефон:</strong> <span th:text="${request.holder.phone}">Телефон</span></p>
+                                    <p><strong>Email:</strong> <span th:text="${request.holder.email}">Email</span></p>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </td>
                 <td class="action-buttons">
                     <div th:if="${request.status.statusId == 1}">
                         <form th:action="@{/requests/approve}" method="post">
@@ -216,25 +250,19 @@
                             <button type="submit" class="btn-table reject">Отклонить</button>
                         </form>
                     </div>
-
                     <form th:action="@{/requests/reject}" method="post" th:if="${request.status.statusId == 2}">
                         <input type="hidden" name="requestId" th:value="${request.requestId}">
                         <button type="submit" class="btn-table reject">Отклонить</button>
                     </form>
-
-                    <!-- Кнопка Запросить возврат для статуса 3 -->
                     <form th:action="@{/requests/requestReturn}" method="post" th:if="${request.status.statusId == 3}">
                         <input type="hidden" name="requestId" th:value="${request.requestId}">
                         <button type="submit" class="btn-table reject">Запросить возврат</button>
                     </form>
-
-                    <!-- Кнопка Вещь у меня для статуса 4 -->
                     <form th:action="@{/requests/confirmReturn}" method="post" th:if="${request.status.statusId == 4}">
                         <input type="hidden" name="requestId" th:value="${request.requestId}">
                         <button type="submit" class="btn-table approve">Подтвердить возврат</button>
                     </form>
                 </td>
-
             </tr>
             </tbody>
         </table>

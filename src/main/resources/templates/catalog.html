@@ -1,14 +1,10 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org"
-      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
-      lang="en">
-
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="en">
 <head>
     <meta charset="UTF-8">
     <title>ItemSharing</title>
     <link rel="stylesheet" th:href="@{/webjars/bootstrap/5.0.0/css/bootstrap.min.css}" />
     <style>
-        /* Стиль для панель фильтров слева */
         .filter-panel {
             position: fixed;
             top: 80px;
@@ -20,15 +16,8 @@
             box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
             display: none;
         }
-
-        .filter-panel.active {
-            display: block;
-        }
-
-        .filter-panel h3 {
-            margin-bottom: 20px;
-        }
-
+        .filter-panel.active { display: block; }
+        .filter-panel h3 { margin-bottom: 20px; }
         .item-card {
             border: 1px solid rgba(221, 221, 221, 0.89);
             padding: 10px;
@@ -42,13 +31,11 @@
             border-radius: 0;
             box-shadow: none;
         }
-
         .item-card img {
             width: 100%;
             height: 200px;
             object-fit: cover;
         }
-
         .item-title {
             font-size: 1.2em;
             font-weight: bold;
@@ -57,7 +44,6 @@
             overflow: hidden;
             text-overflow: ellipsis;
         }
-
         .item-address {
             color: gray;
             font-size: 0.9em;
@@ -65,61 +51,21 @@
             overflow: hidden;
             text-overflow: ellipsis;
         }
-
-        .item-availability {
-            font-weight: bold;
-            color: green;
-        }
-
-        .item-unavailable {
-            color: red;
-        }
-
-        .navbar {
-            position: fixed;
-            top: 0;
-            width: 100%;
-            z-index: 1000;
-        }
-
-        .content {
-            padding-top: 80px;
-        }
-
-        .main-content {
-            display: flex;
-            justify-content: center;
-        }
-
-        .content-wrapper {
-            max-width: 1200px;
-            width: 100%;
-        }
-
-        .row {
-            gap: 10px;
-        }
-
-        .col-md-3 {
-            margin-bottom: 20px;
-            flex: 1 1 23%;
-            max-width: 23%;
-        }
-
-        @media (max-width: 1200px) {
-            .col-md-3:nth-child(4) {
-                display: none;
-            }
-        }
+        .item-availability { font-weight: bold; color: green; }
+        .item-unavailable { color: red; }
+        .navbar { position: fixed; top: 0; width: 100%; z-index: 1000; }
+        .content { padding-top: 80px; }
+        .main-content { display: flex; justify-content: center; }
+        .content-wrapper { max-width: 1200px; width: 100%; }
+        .row { gap: 10px; }
+        .col-md-3 { margin-bottom: 20px; flex: 1 1 23%; max-width: 23%; }
+        @media (max-width: 1200px) { .col-md-3:nth-child(4) { display: none; } }
     </style>
 </head>
 <body>
-
-<!-- Шапка -->
 <nav class="navbar navbar-expand-lg navbar-light bg-light">
     <div class="container-fluid">
         <a class="navbar-brand" href="#">ItemSharing</a>
-
         <form class="d-flex ms-3" method="get" th:action="@{/}">
             <div class="form-group">
                 <select name="category" id="category" class="form-control" onchange="this.form.submit()">
@@ -130,11 +76,9 @@
                 </select>
             </div>
         </form>
-
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
         </button>
-
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav ms-auto">
                 <span sec:authorize="isAuthenticated()">
@@ -153,7 +97,6 @@
     </div>
 </nav>
 
-<!-- Основной контент -->
 <div class="container-fluid content">
     <div class="row mt-4">
         <div class="col-12 main-content">
@@ -182,37 +125,116 @@
     </div>
 </div>
 
-<!-- Панель фильтров -->
 <div class="filter-panel" th:classappend="${category != null} ? 'active' : ''">
     <h3>Фильтры:</h3>
     <form method="GET" action="/">
         <input type="hidden" name="category" th:value="${category}" />
+        <!-- Фильтр по цвету -->
+        <div class="mt-2">
+            <label for="color">Цвет</label>
+            <select id="color" name="color" class="form-control">
+                <option value="">Все цвета</option>
+                <option th:each="color : ${colors}"
+                        th:value="${color.colorId}"
+                        th:text="${color.name}"
+                        th:selected="${filters['color'] != null and filters['color'] == color.colorId.toString()}"></option>
+            </select>
+        </div>
+        <!-- Фильтр по материалу -->
+        <div class="mt-2">
+            <label for="material">Материал</label>
+            <select id="material" name="material" class="form-control">
+                <option value="">Все материалы</option>
+                <option th:each="material : ${materials}"
+                        th:value="${material.materialId}"
+                        th:text="${material.name}"
+                        th:selected="${filters['material'] != null and filters['material'] == material.materialId.toString()}"></option>
+            </select>
+        </div>
+        <!-- Фильтр по производителю -->
+        <div class="mt-2">
+            <label for="maker">Производитель</label>
+            <select id="maker" name="maker" class="form-control" onchange="updateModels()">
+                <option value="">Все производители</option>
+                <option th:each="maker : ${makers}"
+                        th:value="${maker.makerId}"
+                        th:text="${maker.name}"
+                        th:selected="${filters['maker'] != null and filters['maker'] == maker.makerId.toString()}"></option>
+            </select>
+        </div>
+        <!-- Фильтр по модели -->
+        <div class="mt-2">
+            <label for="model">Модель</label>
+            <select id="model" name="model" class="form-control">
+                <option value="">Все модели</option>
+                <option th:each="model : ${models}"
+                        th:value="${model.modelId}"
+                        th:text="${model.name}"
+                        th:attr="data-maker-id=${model.maker.makerId}"
+                        th:selected="${filters['model'] != null and filters['model'] == model.modelId.toString()}"></option>
+            </select>
+        </div>
+        <!-- Фильтры по атрибутам категории -->
         <div th:if="${categoryAttributes != null}">
-            <div th:each="attribute : ${categoryAttributes}">
+            <div th:each="attribute : ${categoryAttributes}" class="mt-2">
                 <label th:text="${attribute.name}">Атрибут</label>
                 <div th:if="${attribute.type.name() == 'ENUM'}">
-                    <select th:name="${attribute.name}">
+                    <select th:name="${attribute.name}" class="form-control">
                         <option value="">Не выбрано</option>
                         <option th:each="value : ${enumValuesMap[attribute.attributeId]}"
-                                th:value="${value}" th:text="${value}"
-                                th:selected="${value == filters[attribute.name]}">
-                        </option>
+                                th:value="${value}"
+                                th:text="${value}"
+                                th:selected="${filters[attribute.name] != null and filters[attribute.name] == value}"></option>
                     </select>
                 </div>
                 <div th:if="${attribute.type.name() == 'NUMBER'}">
                     <input type="number" th:name="${attribute.name + '_min'}" placeholder="От"
-                           th:value="${filters[attribute.name + '_min']}" />
+                           th:value="${filters[attribute.name + '_min']}" class="form-control" />
                     <input type="number" th:name="${attribute.name + '_max'}" placeholder="До"
-                           th:value="${filters[attribute.name + '_max']}" />
+                           th:value="${filters[attribute.name + '_max']}" class="form-control" />
                 </div>
             </div>
         </div>
-        <button type="submit">Применить фильтры</button>
-        <a th:href="@{/?category={category}(category=${category})}">Сбросить фильтры</a>
+        <button type="submit" class="btn btn-primary mt-2">Применить фильтры</button>
+        <a th:href="@{/?category={category}(category=${category})}" class="btn btn-secondary mt-2">Сбросить фильтры</a>
     </form>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.10.2/dist/umd/popper.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/js/bootstrap.min.js"></script>
+<script th:inline="javascript">
+    const allModels = /*[[${models}]]*/ [];
+
+    function updateModels() {
+        const makerId = document.getElementById('maker').value;
+        const modelSelect = document.getElementById('model');
+
+        // Сохраняем текущее выбранное значение
+        const currentModel = modelSelect.value;
+
+        // Очищаем текущие опции
+        modelSelect.innerHTML = '<option value="">Все модели</option>';
+
+        // Фильтруем модели по выбранному makerId
+        const filteredModels = makerId ? allModels.filter(model => model.maker.makerId == makerId) : allModels;
+
+        // Добавляем отфильтрованные модели в <select>
+        filteredModels.forEach(model => {
+            const option = document.createElement('option');
+            option.value = model.modelId;
+            option.text = model.name;
+            option.setAttribute('data-maker-id', model.maker.makerId);
+            if (model.modelId == currentModel) {
+                option.selected = true;
+            }
+            modelSelect.appendChild(option);
+        });
+    }
+
+    // Вызываем функцию при загрузке страницы
+    window.onload = function() {
+        updateModels();
+    };
+</script>
 </body>
 </html>

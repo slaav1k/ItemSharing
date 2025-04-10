@@ -1,149 +1,39 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org"
-      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
-      lang="en">
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Item Details</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Подключаем библиотеку flatpickr -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-
     <style>
-        .parent {
-            display: grid;
-            grid-template-columns: 2fr 1fr; /* 2/3 - карусель, 1/3 - инфо */
-            grid-template-rows: repeat(2, auto);
-            grid-column-gap: 20px;
-            grid-row-gap: 20px;
-        }
-
-        .div1 {
-            grid-area: 1 / 1 / 3 / 2; /* Карусель слева, занимает 2 строки */
-        }
-
-        .div2 {
-            grid-area: 1 / 2 / 2 / 3; /* Верхняя правая часть */
-        }
-
-        .div3 {
-            grid-area: 2 / 2 / 3 / 3; /* Нижняя правая часть */
-        }
-
-        .carousel-inner {
-            position: relative;
-            height: 70vh;
-            max-height: 800px;
-        }
-
-        .carousel-item {
-            height: 100%;
-            width: 100%;
-            overflow: hidden;
-            position: relative;
-        }
-
-        .blurred-background {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-size: cover;
-            background-position: center;
-            filter: blur(10px);
-            transform: scale(1.2); /* Больше размытия */
-        }
-
-        .foreground-image {
-            position: relative;
-            z-index: 1;
-            width: 100%;
-            height: 100%;
-            object-fit: contain;
-        }
-
-        .carousel-thumbnails {
-            display: flex;
-            justify-content: center;
-            gap: 10px;
-            margin-top: 10px;
-            overflow-x: auto;
-            padding-bottom: 10px;
-        }
-
-        .carousel-thumbnails img {
-            width: 80px;
-            height: 60px;
-            object-fit: cover;
-            cursor: pointer;
-            border: 2px solid transparent;
-        }
-
-        .carousel-thumbnails img.active {
-            border: 2px solid #007bff;
-        }
-        .review-photos {
-            display: flex;
-            gap: 10px;
-            margin-top: 10px;
-        }
-
-        .review-photo-thumbnail {
-            width: 80px;
-            height: 80px;
-            object-fit: cover;
-            cursor: pointer;
-            border-radius: 5px;
-        }
-
-        .owner-circle {
-            display: inline-flex;
-            justify-content: center;
-            align-items: center;
-            width: 30px;
-            height: 30px;
-            border-radius: 50%;
-            font-weight: bold;
-            color: white;
-            font-size: 16px;
-            text-transform: uppercase;
-        }
-
-        .owner-link {
-            text-decoration: none; /* Убираем подчёркивание у ссылки */
-        }
-
-        .owner-circle {
-            display: inline-flex;
-            justify-content: center;
-            align-items: center;
-            width: 30px;
-            height: 30px;
-            border-radius: 50%;
-            font-weight: bold;
-            color: white;
-            font-size: 16px;
-            text-transform: uppercase;
-            margin-left: 8px; /* Отступ от имени */
-        }
-
+        .parent { display: grid; grid-template-columns: 2fr 1fr; grid-template-rows: repeat(2, auto); grid-column-gap: 20px; grid-row-gap: 20px; }
+        .div1 { grid-area: 1 / 1 / 3 / 2; }
+        .div2 { grid-area: 1 / 2 / 2 / 3; }
+        .div3 { grid-area: 2 / 2 / 3 / 3; }
+        .carousel-inner { position: relative; height: 70vh; max-height: 800px; }
+        .carousel-item { height: 100%; width: 100%; overflow: hidden; position: relative; }
+        .blurred-background { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-size: cover; background-position: center; filter: blur(10px); transform: scale(1.2); }
+        .foreground-image { position: relative; z-index: 1; width: 100%; height: 100%; object-fit: contain; }
+        .carousel-thumbnails { display: flex; justify-content: center; gap: 10px; margin-top: 10px; overflow-x: auto; padding-bottom: 10px; }
+        .carousel-thumbnails img { width: 80px; height: 60px; object-fit: cover; cursor: pointer; border: 2px solid transparent; }
+        .carousel-thumbnails img.active { border: 2px solid #007bff; }
+        .review-photos { display: flex; gap: 10px; margin-top: 10px; }
+        .review-photo-thumbnail { width: 80px; height: 80px; object-fit: cover; cursor: pointer; border-radius: 5px; }
+        .owner-circle { display: inline-flex; justify-content: center; align-items: center; width: 30px; height: 30px; border-radius: 50%; font-weight: bold; color: white; font-size: 16px; text-transform: uppercase; margin-left: 8px; }
+        .owner-link { text-decoration: none; }
     </style>
 </head>
 <body>
-
 <nav class="navbar navbar-expand-lg navbar-light bg-light">
     <div class="container-fluid">
         <a class="navbar-brand" href="/">ItemSharing</a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
         </button>
-
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav ms-auto">
-                <!-- Кнопки входа/выхода -->
                 <span sec:authorize="isAuthenticated()">
                     <form th:action="@{/logout}" method="post" style="display:inline;">
                         <a th:href="@{/user/{username}(username=${#authentication.principal.username})}" class="btn btn-primary">Профиль</a>
@@ -164,49 +54,58 @@
     <h1 class="mb-4" th:text="${item.name}">Название товара</h1>
 
     <div class="parent">
-        <!-- Карточка слева с каруселью -->
         <div class="div1">
             <div id="itemCarousel" class="carousel slide w-100" data-bs-ride="carousel">
                 <div class="carousel-inner">
                     <div th:each="url, iterStat : ${photoUrlsMap[item.itemId]}" class="carousel-item" th:classappend="${iterStat.index == 0 ? ' active' : ''}">
-                        <!-- Размытое фоновое изображение -->
                         <div class="blurred-background" th:style="'background-image: url(' + @{/images/} + ${url} + ');'"></div>
-                        <!-- Обычное изображение -->
                         <img th:src="@{'/images/' + ${url}}" class="foreground-image" alt="Фото товара">
                     </div>
                 </div>
-                <!-- Кнопка для предыдущего слайда -->
                 <button class="carousel-control-prev" type="button" data-bs-target="#itemCarousel" data-bs-slide="prev"
                         th:if="${#lists.size(photoUrlsMap[item.itemId]) > 1}">
                     <span class="carousel-control-prev-icon" aria-hidden="true"></span>
                     <span class="visually-hidden">Предыдущее</span>
                 </button>
-
-                <!-- Кнопка для следующего слайда -->
                 <button class="carousel-control-next" type="button" data-bs-target="#itemCarousel" data-bs-slide="next"
                         th:if="${#lists.size(photoUrlsMap[item.itemId]) > 1}">
                     <span class="carousel-control-next-icon" aria-hidden="true"></span>
                     <span class="visually-hidden">Следующее</span>
                 </button>
-
             </div>
         </div>
 
-        <!-- Правая часть сверху (адрес, доступность и кнопка) -->
         <div class="div3">
             <p class="card-text">
                 <a th:href="@{'/user/' + ${item.owner.passportNum}}" class="owner-link">
-<!--                <strong>Владелец:</strong>-->
-                <span th:text="${item.owner.fullName}"></span>
-
-
-                <span class="owner-circle"
-                  th:text="${#strings.substring(item.owner.fullName, 0, 1)}"
-                  th:style="'background-color: ' + ${randomColor}">
-                </span>
+                    <span th:text="${item.owner.fullName}"></span>
+                    <span class="owner-circle"
+                          th:text="${#strings.substring(item.owner.fullName, 0, 1)}"
+                          th:style="'background-color: ' + ${randomColor}">
+                    </span>
                 </a>
+                <button class="btn btn-info" data-bs-toggle="modal" data-bs-target="#contactModal">🤙💬</button>
             </p>
 
+            <!-- Модальное окно для контактов -->
+            <div class="modal fade" id="contactModal" tabindex="-1" aria-labelledby="contactModalLabel" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="contactModalLabel">Контакты владельца</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
+                        </div>
+                        <div class="modal-body">
+                            <p><strong>Имя:</strong> <span th:text="${item.owner.fullName}">Имя владельца</span></p>
+                            <p><strong>Телефон:</strong> <span th:text="${item.owner.phone}">Телефон</span></p>
+                            <p><strong>Email:</strong> <span th:text="${item.owner.email}">Email</span></p>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
             <p class="card-text"><strong>Адрес:</strong> <span th:text="${item.address}">Адрес</span></p>
             <p class="card-text"><strong>Доступность:</strong>
@@ -214,7 +113,6 @@
             </p>
             <a href="javascript:void(0);" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#requestModal">Оформить</a>
 
-            <!-- Модальное окно для оформления запроса -->
             <div class="modal fade" id="requestModal" tabindex="-1" aria-labelledby="requestModalLabel" aria-hidden="true">
                 <div class="modal-dialog">
                     <div class="modal-content">
@@ -224,7 +122,6 @@
                         </div>
                         <form action="#" th:action="@{'/item/' + ${item.itemId} + '/request'}" method="post">
                             <div class="modal-body">
-                                <!-- Выбор начальной и конечной даты -->
                                 <div class="mb-3">
                                     <label for="startDate" class="form-label">Начальная дата</label>
                                     <input type="date" id="startDate" name="startDate" class="form-control" required min="2025-03-01">
@@ -246,12 +143,8 @@
                 </div>
             </div>
 
+            <a href="#" class="btn btn-success " data-bs-toggle="modal" data-bs-target="#reviewModal">Оценить товар</a>
 
-
-            <!-- Кнопка для открытия формы оценки -->
-            <a href="#" class="btn btn-success mt-0" data-bs-toggle="modal" data-bs-target="#reviewModal">Оценить товар</a>
-
-            <!-- Модальное окно для ввода отзыва -->
             <div class="modal fade" id="reviewModal" tabindex="-1" aria-labelledby="reviewModalLabel" aria-hidden="true">
                 <div class="modal-dialog">
                     <div class="modal-content">
@@ -261,12 +154,10 @@
                         </div>
                         <form action="#" th:action="@{'/item/' + ${item.itemId} + '/review'}" method="post" enctype="multipart/form-data">
                             <div class="modal-body">
-                                <!-- Комментарий -->
                                 <div class="mb-3">
                                     <label for="comment" class="form-label">Комментарий</label>
                                     <textarea id="comment" name="comment" class="form-control" rows="3" required></textarea>
                                 </div>
-                                <!-- Оценка -->
                                 <div class="mb-3">
                                     <label for="score" class="form-label">Оценка</label>
                                     <select id="score" name="score" class="form-select" required>
@@ -277,7 +168,6 @@
                                         <option value="1">1</option>
                                     </select>
                                 </div>
-                                <!-- Фотографии -->
                                 <div class="mb-3">
                                     <label for="photo" class="form-label">Фото</label>
                                     <input type="file" name="photo" class="form-control" multiple>
@@ -291,10 +181,8 @@
                     </div>
                 </div>
             </div>
-
         </div>
 
-        <!-- Нижняя часть с остальными полями -->
         <div class="div2">
             <p class="card-text"><strong>Описание:</strong> <span th:text="${item.description}">Описание товара</span></p>
             <p class="card-text"><strong>Категория:</strong> <span th:text="${item.category}">Категория</span></p>
@@ -307,25 +195,19 @@
             <p class="card-text" th:each="entry : ${attributes}">
                 <strong th:text="${entry.key}"></strong>: <span th:text="${entry.value}"></span>
             </p>
-
         </div>
     </div>
 
-
     <h2 class="mt-0">Отзывы</h2>
-
     <div th:if="${reviews.isEmpty()}">
         <p>Отзывов пока нет.</p>
     </div>
-
     <div th:each="review : ${reviews}" class="card mb-3">
         <div class="card-body">
             <h5 class="card-title" th:text="${review.reviewer.fullName}">Имя пользователя</h5>
             <p class="card-text"><strong>Оценка:</strong> <span th:text="${review.score}">5</span>/5</p>
             <p class="card-text" th:text="${review.comment}">Комментарий</p>
             <p class="text-muted" th:text="${review.date}">Дата отзыва</p>
-
-            <!-- Фотографии отзыва -->
             <div class="review-photos">
                 <img th:each="photoUrl : ${reviewPhotosMap[review.itemReviewId]}"
                      th:src="@{'/images/' + ${photoUrl}}"
@@ -337,7 +219,6 @@
         </div>
     </div>
 
-    <!-- Модальное окно для просмотра фото -->
     <div class="modal fade" id="reviewImageModal" tabindex="-1" aria-labelledby="reviewImageModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
@@ -362,15 +243,10 @@
         });
     });
 </script>
-<!--<script th:inline="javascript">-->
-<!--    const bookedDates = /*[[${bookedDates}]]*/ [];  // Thymeleaf передаёт массив строк-->
-<!--    console.log(bookedDates);  // Проверьте, что данные переданы правильно-->
-<!--</script>-->
 <script th:inline="javascript">
     const bookedDates = /*[[${bookedDates}]]*/ [];
-    console.log(bookedDates);  // Проверьте вывод в консоли
+    console.log(bookedDates);
 
-    // Функция для получения текущей даты в формате yyyy-mm-dd
     function getTodayDate() {
         const today = new Date();
         const year = today.getFullYear();
@@ -379,34 +255,25 @@
         return `${year}-${month}-${day}`;
     }
 
-    // Инициализация flatpickr
     window.onload = function () {
         const today = getTodayDate();
         document.getElementById("startDate").setAttribute("min", today);
         document.getElementById("endDate").setAttribute("min", today);
 
-        // Преобразуем заблокированные даты в формат, подходящий для flatpickr
         const disabledDates = bookedDates.map(date => new Date(date).toISOString().split('T')[0]);
 
-        // Инициализируем flatpickr для startDate
         flatpickr("#startDate", {
             minDate: today,
-            disable: disabledDates,  // Блокируем заблокированные даты
-            dateFormat: "Y-m-d",  // Устанавливаем формат даты
+            disable: disabledDates,
+            dateFormat: "Y-m-d",
         });
 
-        // Инициализируем flatpickr для endDate
         flatpickr("#endDate", {
             minDate: today,
-            disable: disabledDates,  // Блокируем заблокированные даты
-            dateFormat: "Y-m-d",  // Устанавливаем формат даты
+            disable: disabledDates,
+            dateFormat: "Y-m-d",
         });
     };
 </script>
-
-
-
-
-
 </body>
 </html>

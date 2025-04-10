@@ -35,6 +35,18 @@ public class MainWindowController {
     @Autowired
     private ItemAttributeRepository itemAttributeRepository;
 
+    @Autowired
+    private ColorRepository colorRepository;
+
+    @Autowired
+    private MaterialRepository materialRepository;
+
+    @Autowired
+    private MakerRepository makerRepository;
+
+    @Autowired
+    private ModelRepository modelRepository;
+
     @GetMapping()
     public String catalog(@RequestParam(required = false) Long category,
                           @RequestParam(required = false) Map<String, String> filters,
@@ -80,6 +92,11 @@ public class MainWindowController {
             }
         }
 
+        List<Color> colors = colorRepository.findAll();
+        List<Material> materials = materialRepository.findAll();
+        List<Maker> makers = makerRepository.findAll();
+        List<rsreu.itemsharing.entities.Model> models = modelRepository.findAll();
+
         boolean allFiltersNull = true;
         if (filters != null) {
             for (Map.Entry<String, String> filter : filters.entrySet()) {
@@ -99,9 +116,10 @@ public class MainWindowController {
                 List<ItemAttribute> itemAttributes = itemAttributeRepository.findById_Item(item.getItemId());
                 Map<String, String> itemAttributeMap = new HashMap<>();
 
-                if (itemAttributes.isEmpty()) {
-                    continue;
-                }
+                itemAttributeMap.put("color", String.valueOf(item.getColor().getColorId()));
+                itemAttributeMap.put("material", String.valueOf(item.getMaterial().getMaterialId()));
+                itemAttributeMap.put("maker", String.valueOf(item.getMaker().getMakerId()));
+                itemAttributeMap.put("model", String.valueOf(item.getModel().getModelId()));
 
                 for (ItemAttribute itemAttribute : itemAttributes) {
                     Attribute attribute = attributeRepository.findById(itemAttribute.getId().getAttribute()).orElseThrow();
@@ -182,6 +200,10 @@ public class MainWindowController {
         model.addAttribute("categoryAttributes", attributes);
         model.addAttribute("enumValuesMap", enumValuesMap);
         model.addAttribute("filters", filters);
+        model.addAttribute("colors", colors);
+        model.addAttribute("materials", materials);
+        model.addAttribute("makers", makers);
+        model.addAttribute("models", models);
 
         return "catalog";
     }
