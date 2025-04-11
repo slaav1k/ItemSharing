@@ -8,9 +8,9 @@ INSERT INTO item_photo_links (item_id, photo_id) VALUES
 
 select * from category_attribute
 
-DELETE FROM request;
+select * FROM request;
 
-DELETE FROM users where passport_num = '1234123456';
+DELETE FROM request where holder = 5839201823;
 
 UPDATE users 
 SET 
@@ -43,7 +43,7 @@ DELETE FROM item_attributes WHERE item_id IN (
 DELETE FROM item WHERE owner = '1234123456';
 
 select * from users
-
+select phone from users where passport_num = 9183746574
 select * from photo_links
 select * from item_photo_links
 	
@@ -51,5 +51,28 @@ INSERT INTO request (holder, item, start_date, end_date, status) VALUES
 (4723918271, 'ITM001', '2025-03-27', '2025-03-29', 1);
 
 UPDATE request
+	
 SET status = 1
 WHERE request_id = 2;
+
+update item
+set is_available = FALSE
+where item_id = 'ITM001'
+
+INSERT INTO model (name, maker) VALUES
+('Ipad PRO 2020', 15); -- Apple
+
+INSERT INTO request (holder, item, start_date, end_date, status) VALUES
+(6543211234, 'ITM002', '2025-03-28', '2025-03-31', 1),
+(6543211234, 'ITM002', '2025-03-24', '2025-03-24', 1);
+
+select * from maker;
+
+INSERT INTO maker (name, country, year_of_foundation) VALUES
+('СССР', 'СССР', 1922);
+
+INSERT INTO model (name, maker) VALUES
+('Советская', 19);
+
+INSERT INTO request (holder, item, start_date, end_date, status) VALUES
+(1234123456, '2355b45a-c2c2-4604-ae54-0fce3ff98aa2', '2025-03-24', '2025-03-24', 1);

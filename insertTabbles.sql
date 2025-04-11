@@ -105,6 +105,7 @@ INSERT INTO model (name, maker) VALUES
 ('Daylite', 13),     -- Osprey
 ('OLED55CX6LA', 14), -- LG
 ('Watch Series 6', 15), -- Apple
+('Ipad PRO 2020', 15), -- Apple
 ('Original Set', 16), -- Magformers
 ('PSR 18', 17),      -- Bosch
 ('Mi Band 6', 18);   -- Xiaomi
