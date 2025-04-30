@@ -5,7 +5,10 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 import rsreu.itemsharing.entities.*;
+import rsreu.itemsharing.infrastructure.ItemDocument;
+import rsreu.itemsharing.infrastructure.ItemSearchService;
 import rsreu.itemsharing.repositories.*;
 
 import java.util.*;
@@ -46,6 +49,16 @@ public class MainWindowController {
 
     @Autowired
     private ModelRepository modelRepository;
+
+    @Autowired
+    private ItemSearchService itemSearchService;
+
+    @GetMapping("/search")
+    @ResponseBody
+    public List<ItemDocument> search(@RequestParam String q) {
+        return itemSearchService.search(q);
+    }
+
 
     @GetMapping()
     public String catalog(@RequestParam(required = false) Long category,

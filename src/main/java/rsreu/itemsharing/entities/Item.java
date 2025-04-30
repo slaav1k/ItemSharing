@@ -1,12 +1,14 @@
 package rsreu.itemsharing.entities;
 
 import jakarta.persistence.*;
+import rsreu.itemsharing.infrastructure.ItemEntityListener;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
 @Entity
+@EntityListeners(ItemEntityListener.class)
 @Table(name = "item")
 public class Item {
 

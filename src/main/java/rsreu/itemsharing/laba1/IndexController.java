@@ -19,7 +19,7 @@ public class IndexController {
     @Autowired(required = false)
     private DataSource springDataSource;
 
-//    public IndexController(DataSource springDataSource) {
+//    public ItemIndexController(DataSource springDataSource) {
 //        this.springDataSource = springDataSource;
 //    }
 

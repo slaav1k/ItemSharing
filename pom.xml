@@ -109,6 +109,14 @@
             <version>8.0.2</version>
         </dependency>
 
+        <!-- Elasticsearch Spring Data -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-elasticsearch</artifactId>
+        </dependency>
+
+
+
 
 
     </dependencies>
