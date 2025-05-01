@@ -1,4 +1,4 @@
-package rsreu.itemsharing.controllers;
+package rsreu.itemsharing.services;
 
 import com.itextpdf.io.font.PdfEncodings;
 import com.itextpdf.kernel.font.PdfFont;

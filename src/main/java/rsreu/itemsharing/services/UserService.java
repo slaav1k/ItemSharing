@@ -56,6 +56,10 @@ public class UserService {
                     .stream()
                     .map(link -> link.getPhotoLink().getUrl())
                     .toList();
+            // Если у товара нет фотографий, добавляем заглушку
+            if (photoUrls.isEmpty()) {
+                photoUrls = Collections.singletonList("images/default.png");
+            }
             map.put(item.getItemId(), photoUrls);
         }
         return map;

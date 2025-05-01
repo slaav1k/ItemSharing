@@ -17,8 +17,8 @@ import rsreu.itemsharing.repositories.RequestRepository;
 import rsreu.itemsharing.repositories.RequestStatusRepository;
 import rsreu.itemsharing.repositories.UserRepository;
 import rsreu.itemsharing.security.CustomUserDetails;
+import rsreu.itemsharing.services.ReportService;
 
-import java.io.IOException;
 import java.security.Principal;
 import java.util.List;
 

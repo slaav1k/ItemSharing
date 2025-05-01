@@ -1,0 +1,429 @@
+package rsreu.itemsharing.services;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
+import rsreu.itemsharing.entities.*;
+import rsreu.itemsharing.repositories.*;
+import rsreu.itemsharing.security.CustomUserDetails;
+
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.time.LocalDate;
+import java.util.*;
+import java.util.stream.Collectors;
+
+@Service
+public class ItemService {
+
+    @Autowired
+    private ItemRepository itemRepository;
+
+    @Autowired
+    private ItemPhotoLinkRepository itemPhotoLinkRepository;
+
+    @Autowired
+    private ItemReviewPhotoLinkRepository itemReviewPhotoLinkRepository;
+
+    @Autowired
+    private ItemReviewRepository itemReviewRepository;
+
+    @Autowired
+    private ItemAttributeRepository itemAttributeRepository;
+
+    @Autowired
+    private AttributeRepository attributeRepository;
+
+    @Autowired
+    private PhotoLinkRepository photoLinkRepository;
+
+    @Autowired
+    private RequestRepository requestRepository;
+
+    @Autowired
+    private RequestStatusRepository requestStatusRepository;
+
+    @Autowired
+    private CategoryRepository categoryRepository;
+
+    @Autowired
+    private CategoryAttributeRepository categoryAttributeRepository;
+
+    @Autowired
+    private AttributeEnumValueRepository attributeEnumValueRepository;
+
+    @Autowired
+    private ColorRepository colorRepository;
+
+    @Autowired
+    private MaterialRepository materialRepository;
+
+    @Autowired
+    private MakerRepository makerRepository;
+
+    @Autowired
+    private ModelRepository modelRepository;
+
+    public List<Category> getAllCategories() {
+        return categoryRepository.findAll();
+    }
+
+    public Map<String, Object> getItemDetails(String itemId) {
+        Item item = itemRepository.findById(itemId).orElseThrow();
+        Map<String, Object> modelAttributes = new HashMap<>();
+
+        modelAttributes.put("item", item);
+        modelAttributes.put("owner", item.getOwner());
+
+        // Photos
+        Map<String, List<String>> photoUrlsMap = new HashMap<>();
+        List<ItemPhotoLink> itemPhotoLinks = itemPhotoLinkRepository.findByItem(item);
+        List<String> photoUrls = itemPhotoLinks.stream()
+                .map(link -> link.getPhotoLink().getUrl())
+                .collect(Collectors.toList());
+        photoUrlsMap.put(item.getItemId(), photoUrls);
+        modelAttributes.put("photoUrlsMap", photoUrlsMap);
+
+        // Reviews
+        List<ItemReview> reviews = itemReviewRepository.findByItem(item);
+        Map<Long, List<String>> reviewPhotosMap = new HashMap<>();
+        for (ItemReview review : reviews) {
+            List<ItemReviewPhotoLink> reviewPhotos = itemReviewPhotoLinkRepository.findByItemReview(review);
+            List<String> reviewPhotoUrls = reviewPhotos.stream()
+                    .map(photoLink -> photoLink.getPhotoLink().getUrl())
+                    .collect(Collectors.toList());
+            reviewPhotosMap.put(review.getItemReviewId(), reviewPhotoUrls);
+        }
+        modelAttributes.put("reviews", reviews);
+        modelAttributes.put("reviewPhotosMap", reviewPhotosMap);
+
+        // Random color
+        modelAttributes.put("randomColor", generateRandomColor());
+
+        // Attributes
+        List<ItemAttribute> itemAttributes = itemAttributeRepository.findById_Item(item.getItemId());
+        Map<String, String> attributeMap = new HashMap<>();
+        for (ItemAttribute itemAttribute : itemAttributes) {
+            Attribute attribute = attributeRepository.findById(itemAttribute.getId().getAttribute()).orElseThrow();
+            attributeMap.put(attribute.getName(), itemAttribute.getValue());
+        }
+        modelAttributes.put("attributes", attributeMap);
+
+        // Booked dates
+        List<Request> requests = requestRepository.findByItem(item);
+        List<String> bookedDates = new ArrayList<>();
+        for (Request request : requests) {
+            if (request.getStatus().getStatusId() >= 2 && request.getStatus().getStatusId() <= 4) {
+                LocalDate startDate = request.getStartDate();
+                LocalDate endDate = request.getEndDate();
+                while (!startDate.isAfter(endDate)) {
+                    bookedDates.add(startDate.toString());
+                    startDate = startDate.plusDays(1);
+                }
+            }
+        }
+        modelAttributes.put("bookedDates", bookedDates);
+
+        return modelAttributes;
+    }
+
+    @Transactional
+    public void addReview(String itemId, String comment, int score, MultipartFile[] photos, CustomUserDetails userDetails) {
+        User currentUser = userDetails.getUser();
+        Item item = itemRepository.findById(itemId).orElseThrow();
+
+        ItemReview review = new ItemReview();
+        review.setItem(item);
+        review.setReviewer(currentUser);
+        review.setComment(comment);
+        review.setScore(score);
+        review.setDate(LocalDate.now());
+        itemReviewRepository.save(review);
+
+        if (photos != null && photos.length > 0) {
+            String uploadDir = "C:\\Java Projects\\ItemSharing\\src\\main\\resources\\static\\images\\items";
+            File directory = new File(uploadDir);
+            if (!directory.exists() && !directory.mkdirs()) {
+                throw new RuntimeException("Не удалось создать директорию: " + uploadDir);
+            }
+
+            for (MultipartFile photo : photos) {
+                if (photo.isEmpty()) continue;
+                Path filePath = Paths.get(uploadDir, photo.getOriginalFilename());
+                try {
+                    photo.transferTo(filePath.toFile());
+                    PhotoLink photoLink = new PhotoLink();
+                    photoLink.setUrl("items/" + photo.getOriginalFilename());
+                    photoLinkRepository.save(photoLink);
+
+                    ItemReviewPhotoLink reviewPhotoLink = new ItemReviewPhotoLink();
+                    ItemReviewPhotoLinkId id = new ItemReviewPhotoLinkId(review.getItemReviewId(), photoLink.getPhotoId());
+                    reviewPhotoLink.setId(id);
+                    reviewPhotoLink.setItemReview(review);
+                    reviewPhotoLink.setPhotoLink(photoLink);
+                    itemReviewPhotoLinkRepository.save(reviewPhotoLink);
+                } catch (IOException e) {
+                    throw new RuntimeException("Не удалось сохранить фото: " + filePath, e);
+                }
+            }
+        }
+    }
+
+    public Map<String, Object> getItemRequestDetails(String itemId) {
+        Item item = itemRepository.findById(itemId).orElseThrow();
+        Map<String, Object> modelAttributes = new HashMap<>();
+
+        List<Request> requests = requestRepository.findByItem(item);
+        List<LocalDate> bookedDates = new ArrayList<>();
+        for (Request request : requests) {
+            LocalDate startDate = request.getStartDate();
+            LocalDate endDate = request.getEndDate();
+            while (!startDate.isAfter(endDate)) {
+                bookedDates.add(startDate);
+                startDate = startDate.plusDays(1);
+            }
+        }
+
+        modelAttributes.put("bookedDates", bookedDates);
+        modelAttributes.put("item", item);
+        return modelAttributes;
+    }
+
+    @Transactional
+    public String createRequest(String itemId, LocalDate startDate, LocalDate endDate, CustomUserDetails userDetails) {
+        Item item = itemRepository.findById(itemId).orElseThrow();
+        User currentUser = userDetails.getUser();
+
+        List<Request> requests = requestRepository.findByItem(item);
+        List<LocalDate> bookedDates = new ArrayList<>();
+        for (Request request : requests) {
+            LocalDate startDateFor = request.getStartDate();
+            LocalDate endDateFor = request.getEndDate();
+            while (!startDateFor.isAfter(endDateFor)) {
+                bookedDates.add(startDateFor);
+                startDateFor = startDateFor.plusDays(1);
+            }
+        }
+
+        for (LocalDate date = startDate; !date.isAfter(endDate); date = date.plusDays(1)) {
+            if (bookedDates.contains(date)) {
+                return "error:Выбранные даты уже забронированы";
+            }
+        }
+
+        RequestStatus status = requestStatusRepository.findById(1L).orElseThrow();
+        Request request = new Request();
+        request.setHolder(currentUser);
+        request.setItem(item);
+        request.setStartDate(startDate);
+        request.setEndDate(endDate);
+        request.setStatus(status);
+        requestRepository.save(request);
+
+        return "success";
+    }
+
+    public Map<String, Object> getCreateItemFormData(Long categoryId) {
+        Category category = categoryRepository.findById(categoryId).orElseThrow();
+        Map<String, Object> modelAttributes = new HashMap<>();
+
+        Item newItem = new Item();
+        newItem.setCategory(category);
+        modelAttributes.put("newItem", newItem);
+        modelAttributes.put("category", category);
+
+        List<Attribute> attributes = categoryAttributeRepository.findById_CategoryId(categoryId).stream()
+                .map(catAttr -> attributeRepository.findById(catAttr.getId().getAttributeId()).orElse(null))
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
+
+        Map<Long, List<String>> enumValuesMap = new HashMap<>();
+        for (Attribute attribute : attributes) {
+            if (attribute.getType() == AttributeType.ENUM) {
+                List<String> values = attributeEnumValueRepository.findById_AttributeId(attribute.getAttributeId())
+                        .stream()
+                        .map(value -> value.getId().getValue())
+                        .collect(Collectors.toList());
+                enumValuesMap.put(attribute.getAttributeId(), values);
+            }
+        }
+
+        modelAttributes.put("categoryAttributes", attributes);
+        modelAttributes.put("enumValuesMap", enumValuesMap);
+        modelAttributes.put("categories", categoryRepository.findAll());
+        modelAttributes.put("colors", colorRepository.findAll());
+        modelAttributes.put("materials", materialRepository.findAll());
+        modelAttributes.put("makers", makerRepository.findAll());
+        modelAttributes.put("models", modelRepository.findAll());
+
+        return modelAttributes;
+    }
+
+    @Transactional
+    public String saveItem(Item newItem, Long categoryId, Map<String, String> attributes, MultipartFile[] photos,
+                           Long colorId, Long materialId, Long makerId, Long modelId, CustomUserDetails userDetails) {
+        User currentUser = userDetails.getUser();
+        newItem.setAvailable(true);
+        newItem.setCategory(categoryRepository.findById(categoryId).orElseThrow());
+        newItem.setOwner(currentUser);
+        newItem.setColor(colorRepository.findById(colorId).orElseThrow());
+        newItem.setMaterial(materialRepository.findById(materialId).orElseThrow());
+        newItem.setMaker(makerRepository.findById(makerId).orElseThrow());
+        newItem.setModel(modelRepository.findById(modelId).orElseThrow());
+
+        itemRepository.save(newItem);
+
+        for (Map.Entry<String, String> entry : attributes.entrySet()) {
+            String attributeName = entry.getKey();
+            String value = entry.getValue();
+            if (attributeName.matches("^[a-zA-Z]+$")) continue;
+
+            Attribute attribute = attributeRepository.findByName(attributeName);
+            if (attribute == null) continue;
+
+            ItemAttributeId itemAttributeId = new ItemAttributeId(newItem.getItemId(), attribute.getAttributeId());
+            ItemAttribute itemAttribute = new ItemAttribute();
+            itemAttribute.setId(itemAttributeId);
+            itemAttribute.setValue(value);
+            itemAttributeRepository.save(itemAttribute);
+        }
+
+        if (photos != null && photos.length > 0 && !photos[0].isEmpty()) {
+            String uploadDir = "C:\\Java Projects\\ItemSharing\\src\\main\\resources\\static\\images\\items";
+            File directory = new File(uploadDir);
+            if (!directory.exists() && !directory.mkdirs()) {
+                return "error:Не удалось создать директорию";
+            }
+            if (!directory.canWrite()) {
+                return "error:Нет прав на запись в директорию";
+            }
+
+            for (MultipartFile photo : photos) {
+                if (photo.isEmpty()) continue;
+                String originalFilename = photo.getOriginalFilename() != null ? photo.getOriginalFilename() : "photo_" + System.currentTimeMillis() + ".jpg";
+                String uniqueFileName = generateUniqueFileName(originalFilename, uploadDir);
+                Path filePath = Paths.get(uploadDir, uniqueFileName);
+                try {
+                    photo.transferTo(filePath.toFile());
+                    PhotoLink photoLink = new PhotoLink();
+                    photoLink.setUrl("items/" + uniqueFileName);
+                    photoLinkRepository.save(photoLink);
+
+                    ItemPhotoLinkId itemPhotoLinkId = new ItemPhotoLinkId(newItem.getItemId(), photoLink.getPhotoId());
+                    ItemPhotoLink itemPhotoLink = new ItemPhotoLink(itemPhotoLinkId, newItem, photoLink);
+                    itemPhotoLinkRepository.save(itemPhotoLink);
+                } catch (IOException e) {
+                    return "error:Не удалось сохранить фото";
+                }
+            }
+        }
+
+        return "success:" + newItem.getItemId();
+    }
+
+    public Map<String, Object> getEditItemFormData(String itemId) {
+        Item item = itemRepository.findById(itemId).orElseThrow();
+        Map<String, Object> modelAttributes = new HashMap<>();
+
+        List<Attribute> attributes = categoryAttributeRepository.findById_CategoryId(item.getCategory().getCategoryId()).stream()
+                .map(catAttr -> attributeRepository.findById(catAttr.getId().getAttributeId()).orElse(null))
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
+
+        Map<Long, List<String>> enumValuesMap = new HashMap<>();
+        for (Attribute attribute : attributes) {
+            if (attribute.getType() == AttributeType.ENUM) {
+                List<String> values = attributeEnumValueRepository.findById_AttributeId(attribute.getAttributeId())
+                        .stream()
+                        .map(value -> value.getId().getValue())
+                        .collect(Collectors.toList());
+                enumValuesMap.put(attribute.getAttributeId(), values);
+            }
+        }
+
+        List<ItemAttribute> itemAttributes = itemAttributeRepository.findById_Item(item.getItemId());
+        Map<String, String> attributeMap = new HashMap<>();
+        for (ItemAttribute itemAttribute : itemAttributes) {
+            Attribute attribute = attributeRepository.findById(itemAttribute.getId().getAttribute()).orElseThrow();
+            attributeMap.put(attribute.getName(), itemAttribute.getValue());
+        }
+
+        modelAttributes.put("attributes", attributeMap);
+        modelAttributes.put("item", item);
+        modelAttributes.put("categoryAttributes", attributes);
+        modelAttributes.put("enumValuesMap", enumValuesMap);
+        modelAttributes.put("categories", categoryRepository.findAll());
+        modelAttributes.put("category", item.getCategory());
+        modelAttributes.put("colors", colorRepository.findAll());
+        modelAttributes.put("materials", materialRepository.findAll());
+        modelAttributes.put("makers", makerRepository.findAll());
+        modelAttributes.put("models", modelRepository.findAll());
+        modelAttributes.put("selectedMakerId", item.getMaker().getMakerId());
+
+        return modelAttributes;
+    }
+
+    @Transactional
+    public String updateItem(Item updatedItem, Map<String, String> attributes, MultipartFile[] photos,
+                             Long colorId, Long materialId, Long makerId, Long modelId) {
+        Item item = itemRepository.findById(updatedItem.getItemId()).orElseThrow();
+        item.setName(updatedItem.getName());
+        item.setDescription(updatedItem.getDescription());
+        item.setAddress(updatedItem.getAddress());
+        item.setWeight(updatedItem.getWeight());
+        item.setColor(colorRepository.findById(colorId).orElseThrow());
+        item.setMaterial(materialRepository.findById(materialId).orElseThrow());
+        item.setMaker(makerRepository.findById(makerId).orElseThrow());
+        item.setModel(modelRepository.findById(modelId).orElseThrow());
+        item.setReleaseYear(updatedItem.getReleaseYear());
+        itemRepository.save(item);
+
+        for (Map.Entry<String, String> entry : attributes.entrySet()) {
+            String attributeName = entry.getKey();
+            String value = entry.getValue();
+            Attribute attribute = attributeRepository.findByName(attributeName);
+            if (attribute == null) continue;
+
+            ItemAttributeId itemAttributeId = new ItemAttributeId(item.getItemId(), attribute.getAttributeId());
+            ItemAttribute itemAttribute = itemAttributeRepository.findById(itemAttributeId)
+                    .orElse(new ItemAttribute(itemAttributeId, value));
+            itemAttribute.setValue(value);
+            itemAttributeRepository.save(itemAttribute);
+        }
+
+        // Логика обновления фото может быть добавлена здесь
+        return "success:" + item.getItemId();
+    }
+
+    @Transactional
+    public void deleteItem(String itemId) {
+        itemAttributeRepository.deleteById_Item(itemId);
+        itemPhotoLinkRepository.deleteByItem_ItemId(itemId);
+        itemRepository.deleteById(itemId);
+    }
+
+    private String generateUniqueFileName(String originalFilename, String uploadDir) {
+        String baseName = originalFilename.substring(0, originalFilename.lastIndexOf("."));
+        String extension = originalFilename.substring(originalFilename.lastIndexOf("."));
+        String uniqueFileName = baseName + "_" + System.currentTimeMillis() + extension;
+        File file = new File(uploadDir, uniqueFileName);
+        int counter = 1;
+        while (file.exists()) {
+            uniqueFileName = baseName + "_" + System.currentTimeMillis() + "_" + counter + extension;
+            file = new File(uploadDir, uniqueFileName);
+            counter++;
+        }
+        return uniqueFileName;
+    }
+
+    private String generateRandomColor() {
+        Random random = new Random();
+        int r = random.nextInt(256);
+        int g = random.nextInt(256);
+        int b = random.nextInt(256);
+        return String.format("#%02X%02X%02X", r, g, b);
+    }
+}
