@@ -84,6 +84,9 @@ public class ItemService {
         List<String> photoUrls = itemPhotoLinks.stream()
                 .map(link -> link.getPhotoLink().getUrl())
                 .collect(Collectors.toList());
+        if (photoUrls.isEmpty()) {
+            photoUrls = Collections.singletonList("default.png");
+        }
         photoUrlsMap.put(item.getItemId(), photoUrls);
         modelAttributes.put("photoUrlsMap", photoUrlsMap);
 
@@ -351,6 +354,24 @@ public class ItemService {
             attributeMap.put(attribute.getName(), itemAttribute.getValue());
         }
 
+        List<Map<String, Object>> photoData = itemPhotoLinkRepository.findByItem(item)
+                .stream()
+                .map(link -> {
+                    Map<String, Object> photoInfo = new HashMap<>();
+                    photoInfo.put("photoId", link.getId().getPhotoId()); // Передаем photoId явно
+                    photoInfo.put("url", link.getPhotoLink().getUrl()); // URL фото
+                    return photoInfo;
+                })
+                .collect(Collectors.toList());
+
+        // Если фотографий нет, добавляем заглушку
+//        if (photoData.isEmpty()) {
+//            Map<String, Object> defaultPhoto = new HashMap<>();
+//            defaultPhoto.put("id", null);
+//            defaultPhoto.put("url", "/images/default.png");
+//            photoData = Collections.singletonList(defaultPhoto);
+//        }
+
         modelAttributes.put("attributes", attributeMap);
         modelAttributes.put("item", item);
         modelAttributes.put("categoryAttributes", attributes);
@@ -362,6 +383,7 @@ public class ItemService {
         modelAttributes.put("makers", makerRepository.findAll());
         modelAttributes.put("models", modelRepository.findAll());
         modelAttributes.put("selectedMakerId", item.getMaker().getMakerId());
+        modelAttributes.put("photos", photoData);
 
         return modelAttributes;
     }
@@ -369,18 +391,37 @@ public class ItemService {
     @Transactional
     public String updateItem(Item updatedItem, Map<String, String> attributes, MultipartFile[] photos,
                              Long colorId, Long materialId, Long makerId, Long modelId) {
-        Item item = itemRepository.findById(updatedItem.getItemId()).orElseThrow();
+        Item item = itemRepository.findById(updatedItem.getItemId())
+                .orElseThrow(() -> new IllegalArgumentException("Вещь с ID " + updatedItem.getItemId() + " не найдена"));
+
+        // Обновление основных полей вещи
         item.setName(updatedItem.getName());
         item.setDescription(updatedItem.getDescription());
         item.setAddress(updatedItem.getAddress());
         item.setWeight(updatedItem.getWeight());
-        item.setColor(colorRepository.findById(colorId).orElseThrow());
-        item.setMaterial(materialRepository.findById(materialId).orElseThrow());
-        item.setMaker(makerRepository.findById(makerId).orElseThrow());
-        item.setModel(modelRepository.findById(modelId).orElseThrow());
         item.setReleaseYear(updatedItem.getReleaseYear());
+
+        // Валидация и обновление связанных сущностей
+        if (colorId == null || colorRepository.findById(colorId).isEmpty()) {
+            throw new IllegalArgumentException("Неверный ID цвета: " + colorId);
+        }
+        if (materialId == null || materialRepository.findById(materialId).isEmpty()) {
+            throw new IllegalArgumentException("Неверный ID материала: " + materialId);
+        }
+        if (makerId == null || makerRepository.findById(makerId).isEmpty()) {
+            throw new IllegalArgumentException("Неверный ID производителя: " + makerId);
+        }
+        if (modelId == null || modelRepository.findById(modelId).isEmpty()) {
+            throw new IllegalArgumentException("Неверный ID модели: " + modelId);
+        }
+
+        item.setColor(colorRepository.findById(colorId).get());
+        item.setMaterial(materialRepository.findById(materialId).get());
+        item.setMaker(makerRepository.findById(makerId).get());
+        item.setModel(modelRepository.findById(modelId).get());
         itemRepository.save(item);
 
+        // Обновление атрибутов
         for (Map.Entry<String, String> entry : attributes.entrySet()) {
             String attributeName = entry.getKey();
             String value = entry.getValue();
@@ -394,7 +435,37 @@ public class ItemService {
             itemAttributeRepository.save(itemAttribute);
         }
 
-        // Логика обновления фото может быть добавлена здесь
+        // Обработка новых фотографий
+        if (photos != null && photos.length > 0 && !photos[0].isEmpty()) {
+            String uploadDir = "C:\\Java Projects\\ItemSharing\\src\\main\\resources\\static\\images\\items";
+            File directory = new File(uploadDir);
+            if (!directory.exists() && !directory.mkdirs()) {
+                return "error:Не удалось создать директорию";
+            }
+            if (!directory.canWrite()) {
+                return "error:Нет прав на запись в директорию";
+            }
+
+            for (MultipartFile photo : photos) {
+                if (photo.isEmpty()) continue;
+                String originalFilename = photo.getOriginalFilename() != null ? photo.getOriginalFilename() : "photo_" + System.currentTimeMillis() + ".jpg";
+                String uniqueFileName = generateUniqueFileName(originalFilename, uploadDir);
+                Path filePath = Paths.get(uploadDir, uniqueFileName);
+                try {
+                    photo.transferTo(filePath.toFile());
+                    PhotoLink photoLink = new PhotoLink();
+                    photoLink.setUrl("items/" + uniqueFileName);
+                    photoLinkRepository.save(photoLink);
+
+                    ItemPhotoLinkId itemPhotoLinkId = new ItemPhotoLinkId(item.getItemId(), photoLink.getPhotoId());
+                    ItemPhotoLink itemPhotoLink = new ItemPhotoLink(itemPhotoLinkId, item, photoLink);
+                    itemPhotoLinkRepository.save(itemPhotoLink);
+                } catch (IOException e) {
+                    return "error:Не удалось сохранить фото: " + e.getMessage();
+                }
+            }
+        }
+
         return "success:" + item.getItemId();
     }
 

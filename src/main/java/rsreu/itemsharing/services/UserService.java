@@ -58,7 +58,7 @@ public class UserService {
                     .toList();
             // Если у товара нет фотографий, добавляем заглушку
             if (photoUrls.isEmpty()) {
-                photoUrls = Collections.singletonList("images/default.png");
+                photoUrls = Collections.singletonList("default.png");
             }
             map.put(item.getItemId(), photoUrls);
         }
