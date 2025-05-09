@@ -127,7 +127,11 @@
             <version>2.2.6.RELEASE</version>
         </dependency>
 
-
+        <!-- Spring Data Redis -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-redis</artifactId>
+        </dependency>
 
 
 

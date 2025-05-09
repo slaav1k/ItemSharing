@@ -2,7 +2,10 @@ package rsreu.itemsharing.services;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import rsreu.itemsharing.entities.*;
 import rsreu.itemsharing.infrastructure.Birt;
@@ -12,6 +15,7 @@ import java.io.IOException;
 import java.time.LocalDate;
 import java.util.*;
 
+@Slf4j
 @Service
 public class UserService {
 
@@ -44,9 +48,17 @@ public class UserService {
         return blackListRepository.findByBlockedUserEntityAndBlockedByUserEntity(targetUser, currentUser).isPresent();
     }
 
+    @Cacheable(value = "userAverageScore", key = "#user.passportNum")
     public double calculateAverageScore(User user) {
+        if (user == null || user.getPassportNum() == 0) {
+            log.error("Invalid user or passportNum: {}", user);
+            throw new IllegalArgumentException("User or passportNum is invalid");
+        }
+        log.info("Calculating average score for user with passportNum: {}", user.getPassportNum());
         List<Review> reviews = user.getReviewsReceived();
-        return reviews.isEmpty() ? 0.0 : reviews.stream().mapToInt(Review::getScore).average().orElse(0.0);
+        double score = reviews.isEmpty() ? 0.0 : reviews.stream().mapToInt(Review::getScore).average().orElse(0.0);
+        log.info("Calculated score: {} for user: {}", score, user.getPassportNum());
+        return score;
     }
 
     public Map<String, List<String>> buildPhotoUrlsMap(List<Item> items) {
@@ -56,7 +68,6 @@ public class UserService {
                     .stream()
                     .map(link -> normalizePhotoUrl(link.getPhotoLink().getUrl()))
                     .toList();
-            // Если у товара нет фотографий, добавляем заглушку
             if (photoUrls.isEmpty()) {
                 photoUrls = Collections.singletonList("/images/default.png");
             }
@@ -88,10 +99,13 @@ public class UserService {
         return itemsInUse;
     }
 
+    @CacheEvict(value = "userAverageScore", key = "#reviewed.passportNum")
     public void saveReview(User reviewer, User reviewed, int score, String comment) {
+        log.info("Saving review for user: {} by reviewer: {}", reviewed.getPassportNum(), reviewer.getPassportNum());
         ReviewId reviewId = new ReviewId(reviewed.getPassportNum(), reviewer.getPassportNum(), LocalDate.now());
         Review review = new Review(reviewId, reviewed, reviewer, comment, score);
         reviewRepository.save(review);
+        log.info("Review saved, cache evicted for user: {}", reviewed.getPassportNum());
     }
 
     public void blockUser(User targetUser, User currentUser) {

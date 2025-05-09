@@ -4,7 +4,10 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.jdbc.DataSourceBuilder;
+import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.EnableAspectJAutoProxy;
 import rsreu.itemsharing.configs.ObjectS3Config;
 
 import javax.sql.DataSource;
@@ -12,6 +15,8 @@ import javax.sql.DataSource;
 
 @SpringBootApplication
 @EnableConfigurationProperties(ObjectS3Config.class)
+@EnableCaching
+@EnableAspectJAutoProxy
 public class ItemSharingApplication {
 
     public static void main(String[] args) {
