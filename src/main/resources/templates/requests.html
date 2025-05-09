@@ -16,7 +16,6 @@
             text-decoration: none; /* Убираем подчеркивание при наведении */
         }
 
-
         .parent {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
@@ -65,11 +64,13 @@
             background-color: #f1f1f1;
             font-weight: bold;
             color: #333;
+            text-align: center;
         }
 
         td {
             background-color: #fff;
             border-bottom: 1px solid #ddd;
+            text-align: center;
         }
 
         /* Оформление кнопок в таблицах */
@@ -78,6 +79,8 @@
             font-size: 0.9em;
             border-radius: 5px;
             border: none;
+            min-width: 180px; /* Фиксированная минимальная ширина для всех кнопок */
+            text-align: center; /* Центрируем текст внутри кнопок */
         }
 
         .btn-table.cancel {
@@ -110,6 +113,15 @@
             text-decoration: underline;
         }
 
+        /* Стили для модальных кнопок */
+        .white-btn {
+            background-color: white;
+            border: 1px solid #ccc;
+            color: #333;
+            padding: 6px 12px;
+            border-radius: 5px;
+            min-width: 80px; /* Опционально для кнопки "Связаться" */
+        }
     </style>
 </head>
 <body>
@@ -180,7 +192,6 @@
                         <button type="submit" class="btn-table reject">Вернуть вещь</button>
                     </form>
                 </td>
-
             </tr>
             </tbody>
         </table>
@@ -267,7 +278,6 @@
             </tbody>
         </table>
     </div>
-
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
