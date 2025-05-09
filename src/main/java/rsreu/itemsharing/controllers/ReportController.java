@@ -1,4 +1,4 @@
-package rsreu.itemsharing.laba4;
+package rsreu.itemsharing.controllers;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -7,6 +7,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import rsreu.itemsharing.infrastructure.Birt;
 
 @Controller
 public class ReportController {

@@ -1,4 +1,4 @@
-package rsreu.itemsharing.laba4;
+package rsreu.itemsharing.infrastructure;
 
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;

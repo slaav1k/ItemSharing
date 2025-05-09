@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import rsreu.itemsharing.entities.Request;
 import rsreu.itemsharing.entities.RequestStatus;
 import rsreu.itemsharing.entities.User;
-import rsreu.itemsharing.laba4.Birt;
+import rsreu.itemsharing.infrastructure.Birt;
 import rsreu.itemsharing.repositories.RequestRepository;
 import rsreu.itemsharing.repositories.RequestStatusRepository;
 import rsreu.itemsharing.repositories.UserRepository;
