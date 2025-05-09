@@ -9,17 +9,15 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import rsreu.itemsharing.entities.*;
-import rsreu.itemsharing.repositories.ItemPhotoLinkRepository;
-import rsreu.itemsharing.repositories.PhotoLinkRepository;
 import rsreu.itemsharing.security.CustomUserDetails;
 import rsreu.itemsharing.services.ItemService;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.time.LocalDate;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Controller
 public class ItemController {
@@ -27,12 +25,6 @@ public class ItemController {
 
     @Autowired
     private ItemService itemService;
-
-    @Autowired
-    private ItemPhotoLinkRepository itemPhotoLinkRepository;
-
-    @Autowired
-    private PhotoLinkRepository photoLinkRepository;
 
     @GetMapping("/item/{itemId}")
     public String getItem(@PathVariable("itemId") String itemId, Model model) {
@@ -123,39 +115,18 @@ public class ItemController {
                              @RequestParam("modelId") Long modelId,
                              @RequestParam(value = "photosToDelete", required = false) String photosToDelete,
                              Model model) {
-        // Обработка фотографий для удаления
-        if (photosToDelete != null && !photosToDelete.isEmpty()) {
-            String[] photoIds = photosToDelete.split(",");
-            for (String photoIdStr : photoIds) {
-                try {
-                    Long photoId = Long.parseLong(photoIdStr);
-                    ItemPhotoLinkId linkId = new ItemPhotoLinkId(updatedItem.getItemId(), photoId);
-                    ItemPhotoLink itemPhotoLink = itemPhotoLinkRepository.findById(linkId)
-                            .orElseThrow(() -> new IllegalArgumentException("Фото с ID " + photoId + " не найдено для вещи " + updatedItem.getItemId()));
+        List<Long> photosToDeleteList = photosToDelete != null && !photosToDelete.isEmpty()
+                ? Arrays.stream(photosToDelete.split(","))
+                .map(Long::parseLong)
+                .collect(Collectors.toList())
+                : Collections.emptyList();
 
-                    itemPhotoLinkRepository.deleteById(linkId);
-
-                    PhotoLink photoLink = itemPhotoLink.getPhotoLink();
-                    List<ItemPhotoLink> remainingLinks = itemPhotoLinkRepository.findByPhotoLink(photoLink);
-                    if (remainingLinks.isEmpty()) {
-                        String filePath = "C:\\Java Projects\\ItemSharing\\src\\main\\resources\\static\\images\\" + photoLink.getUrl();
-                        try {
-                            Files.deleteIfExists(Paths.get(filePath));
-                        } catch (IOException e) {
-                            logger.error("Не удалось удалить файл: {}", filePath, e);
-                        }
-                        photoLinkRepository.delete(photoLink);
-                    }
-                } catch (IllegalArgumentException e) {
-                    logger.error("Ошибка при удалении фото: {}", e.getMessage());
-                    model.addAttribute("error", e.getMessage());
-                    model.addAllAttributes(itemService.getEditItemFormData(updatedItem.getItemId()));
-                    return "editItem";
-                }
-            }
+        String result = itemService.updateItem(updatedItem, attributes, photos != null ? photos : new MultipartFile[0], colorId, materialId, makerId, modelId, photosToDeleteList);
+        if (result.startsWith("error")) {
+            model.addAttribute("error", result.substring(6));
+            model.addAllAttributes(itemService.getEditItemFormData(updatedItem.getItemId()));
+            return "editItem";
         }
-
-        String result = itemService.updateItem(updatedItem, attributes, photos != null ? photos : new MultipartFile[0], colorId, materialId, makerId, modelId);
         return "redirect:/item/" + result.split(":")[1];
     }
 

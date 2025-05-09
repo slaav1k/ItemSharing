@@ -239,7 +239,7 @@
       <div class="col-md-6" th:each="i : ${items}">
         <a th:href="@{'/item/' + ${i.itemId}}" class="text-decoration-none">
           <div class="item-card">
-            <img th:src="@{'/images/' + ${photoUrlsMap[i.itemId][0]}}" alt="Фото">
+            <img th:src="@{${photoUrlsMap[i.itemId][0]}}" alt="Фото">
 
             <div class="item-title">
               <span th:text="${#strings.length(i.name) > 20 ? #strings.substring(i.name, 0, 20) + '...' : i.name}">Название</span>

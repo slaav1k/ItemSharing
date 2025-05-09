@@ -54,15 +54,24 @@ public class UserService {
         for (Item item : items) {
             List<String> photoUrls = itemPhotoLinkRepository.findByItem(item)
                     .stream()
-                    .map(link -> link.getPhotoLink().getUrl())
+                    .map(link -> normalizePhotoUrl(link.getPhotoLink().getUrl()))
                     .toList();
             // Если у товара нет фотографий, добавляем заглушку
             if (photoUrls.isEmpty()) {
-                photoUrls = Collections.singletonList("default.png");
+                photoUrls = Collections.singletonList("/images/default.png");
             }
             map.put(item.getItemId(), photoUrls);
         }
         return map;
+    }
+
+    private String normalizePhotoUrl(String url) {
+        if (url.startsWith("http")) {
+            return url;
+        } else if (url.startsWith("items/")) {
+            return "/images/" + url;
+        }
+        return "/images/default.png";
     }
 
     public List<Request> getItemsInUse(User user) {

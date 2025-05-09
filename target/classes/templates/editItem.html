@@ -180,7 +180,7 @@
       <label>Текущие фотографии</label>
       <div class="carousel-thumbnails">
         <div th:each="photo : ${photos}" class="photo-container">
-          <img th:src="'/images/' + ${photo.url}"
+          <img th:src="${photo.url}"
                th:attr="data-photo-id=${photo.photoId}"
                alt="Фото вещи"
                class="review-photo-thumbnail" />

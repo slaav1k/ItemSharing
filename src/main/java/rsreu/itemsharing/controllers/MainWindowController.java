@@ -196,11 +196,11 @@ public class MainWindowController {
         for (Item item : items) {
             List<ItemPhotoLink> itemPhotoLinks = itemPhotoLinkRepository.findByItem(item);
             List<String> photoUrls = itemPhotoLinks.stream()
-                    .map(link -> link.getPhotoLink().getUrl())
+                    .map(link -> normalizePhotoUrl(link.getPhotoLink().getUrl()))
                     .collect(Collectors.toList());
             // Если у товара нет фотографий, добавляем запасной URL
             if (photoUrls.isEmpty()) {
-                photoUrls = Collections.singletonList("default.png"); // Относительный путь к запасному изображению
+                photoUrls = Collections.singletonList("/images/default.png"); // Относительный путь к запасному изображению
             }
             photoUrlsMap.put(item.getItemId(), photoUrls);
         }
@@ -219,5 +219,14 @@ public class MainWindowController {
         model.addAttribute("models", models);
 
         return "catalog";
+    }
+
+    private String normalizePhotoUrl(String url) {
+        if (url.startsWith("http")) {
+            return url;
+        } else if (url.startsWith("items/")) {
+            return "/images/" + url;
+        }
+        return "/images/default.png";
     }
 }

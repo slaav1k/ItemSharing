@@ -8,8 +8,8 @@ import rsreu.itemsharing.entities.*;
 import rsreu.itemsharing.repositories.*;
 import rsreu.itemsharing.security.CustomUserDetails;
 
-import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDate;
@@ -67,6 +67,9 @@ public class ItemService {
     @Autowired
     private ModelRepository modelRepository;
 
+    @Autowired
+    private S3Service s3Service;
+
     public List<Category> getAllCategories() {
         return categoryRepository.findAll();
     }
@@ -82,10 +85,10 @@ public class ItemService {
         Map<String, List<String>> photoUrlsMap = new HashMap<>();
         List<ItemPhotoLink> itemPhotoLinks = itemPhotoLinkRepository.findByItem(item);
         List<String> photoUrls = itemPhotoLinks.stream()
-                .map(link -> link.getPhotoLink().getUrl())
+                .map(link -> normalizePhotoUrl(link.getPhotoLink().getUrl()))
                 .collect(Collectors.toList());
         if (photoUrls.isEmpty()) {
-            photoUrls = Collections.singletonList("default.png");
+            photoUrls = Collections.singletonList("/images/default.png");
         }
         photoUrlsMap.put(item.getItemId(), photoUrls);
         modelAttributes.put("photoUrlsMap", photoUrlsMap);
@@ -96,7 +99,7 @@ public class ItemService {
         for (ItemReview review : reviews) {
             List<ItemReviewPhotoLink> reviewPhotos = itemReviewPhotoLinkRepository.findByItemReview(review);
             List<String> reviewPhotoUrls = reviewPhotos.stream()
-                    .map(photoLink -> photoLink.getPhotoLink().getUrl())
+                    .map(photoLink -> normalizePhotoUrl(photoLink.getPhotoLink().getUrl()))
                     .collect(Collectors.toList());
             reviewPhotosMap.put(review.getItemReviewId(), reviewPhotoUrls);
         }
@@ -147,30 +150,21 @@ public class ItemService {
         itemReviewRepository.save(review);
 
         if (photos != null && photos.length > 0) {
-            String uploadDir = "C:\\Java Projects\\ItemSharing\\src\\main\\resources\\static\\images\\items";
-            File directory = new File(uploadDir);
-            if (!directory.exists() && !directory.mkdirs()) {
-                throw new RuntimeException("Не удалось создать директорию: " + uploadDir);
-            }
-
             for (MultipartFile photo : photos) {
                 if (photo.isEmpty()) continue;
-                Path filePath = Paths.get(uploadDir, photo.getOriginalFilename());
-                try {
-                    photo.transferTo(filePath.toFile());
-                    PhotoLink photoLink = new PhotoLink();
-                    photoLink.setUrl("items/" + photo.getOriginalFilename());
-                    photoLinkRepository.save(photoLink);
+                String originalFilename = photo.getOriginalFilename() != null ? photo.getOriginalFilename() : "photo_" + System.currentTimeMillis() + ".jpg";
+                String uniqueFileName = generateUniqueFileName(originalFilename);
+                String s3Url = s3Service.uploadFile(uniqueFileName, photo, "reviews/");
+                PhotoLink photoLink = new PhotoLink();
+                photoLink.setUrl(s3Url);
+                photoLinkRepository.save(photoLink);
 
-                    ItemReviewPhotoLink reviewPhotoLink = new ItemReviewPhotoLink();
-                    ItemReviewPhotoLinkId id = new ItemReviewPhotoLinkId(review.getItemReviewId(), photoLink.getPhotoId());
-                    reviewPhotoLink.setId(id);
-                    reviewPhotoLink.setItemReview(review);
-                    reviewPhotoLink.setPhotoLink(photoLink);
-                    itemReviewPhotoLinkRepository.save(reviewPhotoLink);
-                } catch (IOException e) {
-                    throw new RuntimeException("Не удалось сохранить фото: " + filePath, e);
-                }
+                ItemReviewPhotoLink reviewPhotoLink = new ItemReviewPhotoLink();
+                ItemReviewPhotoLinkId id = new ItemReviewPhotoLinkId(review.getItemReviewId(), photoLink.getPhotoId());
+                reviewPhotoLink.setId(id);
+                reviewPhotoLink.setItemReview(review);
+                reviewPhotoLink.setPhotoLink(photoLink);
+                itemReviewPhotoLinkRepository.save(reviewPhotoLink);
             }
         }
     }
@@ -295,32 +289,18 @@ public class ItemService {
         }
 
         if (photos != null && photos.length > 0 && !photos[0].isEmpty()) {
-            String uploadDir = "C:\\Java Projects\\ItemSharing\\src\\main\\resources\\static\\images\\items";
-            File directory = new File(uploadDir);
-            if (!directory.exists() && !directory.mkdirs()) {
-                return "error:Не удалось создать директорию";
-            }
-            if (!directory.canWrite()) {
-                return "error:Нет прав на запись в директорию";
-            }
-
             for (MultipartFile photo : photos) {
                 if (photo.isEmpty()) continue;
                 String originalFilename = photo.getOriginalFilename() != null ? photo.getOriginalFilename() : "photo_" + System.currentTimeMillis() + ".jpg";
-                String uniqueFileName = generateUniqueFileName(originalFilename, uploadDir);
-                Path filePath = Paths.get(uploadDir, uniqueFileName);
-                try {
-                    photo.transferTo(filePath.toFile());
-                    PhotoLink photoLink = new PhotoLink();
-                    photoLink.setUrl("items/" + uniqueFileName);
-                    photoLinkRepository.save(photoLink);
+                String uniqueFileName = generateUniqueFileName(originalFilename);
+                String s3Url = s3Service.uploadFile(uniqueFileName, photo);
+                PhotoLink photoLink = new PhotoLink();
+                photoLink.setUrl(s3Url);
+                photoLinkRepository.save(photoLink);
 
-                    ItemPhotoLinkId itemPhotoLinkId = new ItemPhotoLinkId(newItem.getItemId(), photoLink.getPhotoId());
-                    ItemPhotoLink itemPhotoLink = new ItemPhotoLink(itemPhotoLinkId, newItem, photoLink);
-                    itemPhotoLinkRepository.save(itemPhotoLink);
-                } catch (IOException e) {
-                    return "error:Не удалось сохранить фото";
-                }
+                ItemPhotoLinkId itemPhotoLinkId = new ItemPhotoLinkId(newItem.getItemId(), photoLink.getPhotoId());
+                ItemPhotoLink itemPhotoLink = new ItemPhotoLink(itemPhotoLinkId, newItem, photoLink);
+                itemPhotoLinkRepository.save(itemPhotoLink);
             }
         }
 
@@ -358,19 +338,11 @@ public class ItemService {
                 .stream()
                 .map(link -> {
                     Map<String, Object> photoInfo = new HashMap<>();
-                    photoInfo.put("photoId", link.getId().getPhotoId()); // Передаем photoId явно
-                    photoInfo.put("url", link.getPhotoLink().getUrl()); // URL фото
+                    photoInfo.put("photoId", link.getId().getPhotoId());
+                    photoInfo.put("url", normalizePhotoUrl(link.getPhotoLink().getUrl()));
                     return photoInfo;
                 })
                 .collect(Collectors.toList());
-
-        // Если фотографий нет, добавляем заглушку
-//        if (photoData.isEmpty()) {
-//            Map<String, Object> defaultPhoto = new HashMap<>();
-//            defaultPhoto.put("id", null);
-//            defaultPhoto.put("url", "/images/default.png");
-//            photoData = Collections.singletonList(defaultPhoto);
-//        }
 
         modelAttributes.put("attributes", attributeMap);
         modelAttributes.put("item", item);
@@ -390,7 +362,7 @@ public class ItemService {
 
     @Transactional
     public String updateItem(Item updatedItem, Map<String, String> attributes, MultipartFile[] photos,
-                             Long colorId, Long materialId, Long makerId, Long modelId) {
+                             Long colorId, Long materialId, Long makerId, Long modelId, List<Long> photosToDelete) {
         Item item = itemRepository.findById(updatedItem.getItemId())
                 .orElseThrow(() -> new IllegalArgumentException("Вещь с ID " + updatedItem.getItemId() + " не найдена"));
 
@@ -435,34 +407,54 @@ public class ItemService {
             itemAttributeRepository.save(itemAttribute);
         }
 
+        // Обработка фотографий для удаления
+        if (photosToDelete != null && !photosToDelete.isEmpty()) {
+            for (Long photoId : photosToDelete) {
+                ItemPhotoLinkId linkId = new ItemPhotoLinkId(item.getItemId(), photoId);
+                ItemPhotoLink itemPhotoLink = itemPhotoLinkRepository.findById(linkId)
+                        .orElseThrow(() -> new IllegalArgumentException("Фото с ID " + photoId + " не найдено для вещи " + item.getItemId()));
+
+                PhotoLink photoLink = itemPhotoLink.getPhotoLink();
+                String url = photoLink.getUrl();
+
+                // Удаление файла
+                if (url.startsWith("http")) {
+                    // S3
+                    String key = url.substring(url.indexOf("items/"));
+                    s3Service.deleteFile(key);
+                } else if (url.startsWith("items/")) {
+                    // Local
+                    String filePath = "C:\\Java Projects\\ItemSharing\\src\\main\\resources\\static\\images\\" + url;
+                    try {
+                        Files.deleteIfExists(Paths.get(filePath));
+                    } catch (IOException e) {
+                        throw new RuntimeException("Не удалось удалить локальный файл: " + filePath, e);
+                    }
+                }
+
+                // Удаление записей из БД
+                itemPhotoLinkRepository.deleteById(linkId);
+                List<ItemPhotoLink> remainingLinks = itemPhotoLinkRepository.findByPhotoLink(photoLink);
+                if (remainingLinks.isEmpty()) {
+                    photoLinkRepository.delete(photoLink);
+                }
+            }
+        }
+
         // Обработка новых фотографий
         if (photos != null && photos.length > 0 && !photos[0].isEmpty()) {
-            String uploadDir = "C:\\Java Projects\\ItemSharing\\src\\main\\resources\\static\\images\\items";
-            File directory = new File(uploadDir);
-            if (!directory.exists() && !directory.mkdirs()) {
-                return "error:Не удалось создать директорию";
-            }
-            if (!directory.canWrite()) {
-                return "error:Нет прав на запись в директорию";
-            }
-
             for (MultipartFile photo : photos) {
                 if (photo.isEmpty()) continue;
                 String originalFilename = photo.getOriginalFilename() != null ? photo.getOriginalFilename() : "photo_" + System.currentTimeMillis() + ".jpg";
-                String uniqueFileName = generateUniqueFileName(originalFilename, uploadDir);
-                Path filePath = Paths.get(uploadDir, uniqueFileName);
-                try {
-                    photo.transferTo(filePath.toFile());
-                    PhotoLink photoLink = new PhotoLink();
-                    photoLink.setUrl("items/" + uniqueFileName);
-                    photoLinkRepository.save(photoLink);
+                String uniqueFileName = generateUniqueFileName(originalFilename);
+                String s3Url = s3Service.uploadFile(uniqueFileName, photo);
+                PhotoLink photoLink = new PhotoLink();
+                photoLink.setUrl(s3Url);
+                photoLinkRepository.save(photoLink);
 
-                    ItemPhotoLinkId itemPhotoLinkId = new ItemPhotoLinkId(item.getItemId(), photoLink.getPhotoId());
-                    ItemPhotoLink itemPhotoLink = new ItemPhotoLink(itemPhotoLinkId, item, photoLink);
-                    itemPhotoLinkRepository.save(itemPhotoLink);
-                } catch (IOException e) {
-                    return "error:Не удалось сохранить фото: " + e.getMessage();
-                }
+                ItemPhotoLinkId itemPhotoLinkId = new ItemPhotoLinkId(item.getItemId(), photoLink.getPhotoId());
+                ItemPhotoLink itemPhotoLink = new ItemPhotoLink(itemPhotoLinkId, item, photoLink);
+                itemPhotoLinkRepository.save(itemPhotoLink);
             }
         }
 
@@ -476,18 +468,19 @@ public class ItemService {
         itemRepository.deleteById(itemId);
     }
 
-    private String generateUniqueFileName(String originalFilename, String uploadDir) {
+    private String normalizePhotoUrl(String url) {
+        if (url.startsWith("http")) {
+            return url;
+        } else if (url.startsWith("items/")) {
+            return "/images/" + url;
+        }
+        return "/images/default.png";
+    }
+
+    private String generateUniqueFileName(String originalFilename) {
         String baseName = originalFilename.substring(0, originalFilename.lastIndexOf("."));
         String extension = originalFilename.substring(originalFilename.lastIndexOf("."));
-        String uniqueFileName = baseName + "_" + System.currentTimeMillis() + extension;
-        File file = new File(uploadDir, uniqueFileName);
-        int counter = 1;
-        while (file.exists()) {
-            uniqueFileName = baseName + "_" + System.currentTimeMillis() + "_" + counter + extension;
-            file = new File(uploadDir, uniqueFileName);
-            counter++;
-        }
-        return uniqueFileName;
+        return baseName + "_" + System.currentTimeMillis() + extension;
     }
 
     private String generateRandomColor() {

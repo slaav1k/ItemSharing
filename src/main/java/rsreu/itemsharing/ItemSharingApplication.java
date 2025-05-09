@@ -2,13 +2,16 @@ package rsreu.itemsharing;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.jdbc.DataSourceBuilder;
 import org.springframework.context.annotation.Bean;
+import rsreu.itemsharing.configs.ObjectS3Config;
 
 import javax.sql.DataSource;
 
 
 @SpringBootApplication
+@EnableConfigurationProperties(ObjectS3Config.class)
 public class ItemSharingApplication {
 
     public static void main(String[] args) {
