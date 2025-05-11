@@ -10,12 +10,12 @@
             top: 80px;
             left: 0;
             width: 250px;
-            height: 100%; /* Оставляем высоту 100% */
+            height: 100%;
             background-color: #f8f9fa;
             padding: 20px;
             box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
             display: none;
-            overflow-y: auto; /* Добавляем вертикальную прокрутку */
+            overflow-y: auto;
         }
         .filter-panel.active { display: block; }
         .filter-panel h3 { margin-bottom: 20px; }
@@ -61,20 +61,17 @@
         .row { gap: 10px; }
         .col-md-3 { margin-bottom: 20px; flex: 1 1 23%; max-width: 23%; }
         @media (max-width: 1200px) { .col-md-3:nth-child(4) { display: none; } }
-        /* Стили для формы поиска */
         .search-form {
             width: 100%;
-            max-width: 600px; /* Ограничиваем максимальную ширину для больших экранов */
+            max-width: 600px;
         }
         .input-group {
             position: relative;
             width: 100%;
         }
-
         .search-input {
-            padding-right: 70px; /* Делаем место для кнопок внутри */
+            padding-right: 70px;
         }
-
         .search-btn,
         .clear-btn {
             position: absolute;
@@ -88,25 +85,19 @@
             cursor: pointer;
             color: #495057;
         }
-
         .search-btn {
             right: 40px;
-            bottom: 40px
         }
-
         .clear-btn {
             right: 10px;
         }
-
     </style>
 </head>
 <body>
 <nav class="navbar navbar-expand-lg navbar-light bg-light">
     <div class="container-fluid">
-        <!-- Логотип -->
         <a class="navbar-brand" href="#">ItemSharing</a>
 
-        <!-- Форма выбора категории -->
         <form class="d-flex me-3" method="get" th:action="@{/}">
             <div class="form-group">
                 <select name="category" id="category" class="form-control" onchange="this.form.submit()">
@@ -118,33 +109,31 @@
             </div>
         </form>
 
-        <!-- Форма поиска (по центру и растянутая) -->
         <div class="flex-grow-1 d-flex justify-content-center">
-            <form class="search-form" method="get" th:action="@{/}">
+            <form class="search-form" id="searchForm" method="get" th:action="@{/}" onsubmit="return false;">
                 <div class="input-group">
                     <input type="text" name="search" class="form-control search-input" placeholder="Поиск вещей..." th:value="${search}">
+                    <input type="hidden" name="searchIds" id="searchIds" th:value="${searchIds}">
                     <span class="input-group-text">
-                <button type="submit" class="btn search-btn p-0">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="20" fill="currentColor" class="bi bi-search" viewBox="0 0 16 20">
-                        <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/>
-                    </svg>
-                </button>
-                <button type="button" class="btn clear-btn p-0" onclick="document.querySelector('.search-input').value = ''; this.closest('form').submit();">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="20" fill="currentColor" class="bi bi-x" viewBox="0 0 16 20">
-                        <path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z"/>
-                    </svg>
-                </button>
-            </span>
+                        <button type="button" class="btn search-btn p-0" onclick="performSearch(event)">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="20" fill="currentColor" class="bi bi-search" viewBox="0 0 16 20">
+                                <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/>
+                            </svg>
+                        </button>
+                        <button type="button" class="btn clear-btn p-0" onclick="clearSearch()">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="20" fill="currentColor" class="bi bi-x" viewBox="0 0 16 20">
+                                <path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z"/>
+                            </svg>
+                        </button>
+                    </span>
                 </div>
             </form>
         </div>
 
-        <!-- Кнопка для мобильного меню -->
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
         </button>
 
-        <!-- Кнопки профиля/входа/выхода -->
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav ms-auto">
                 <span sec:authorize="isAuthenticated()">
@@ -195,7 +184,7 @@
     <label><b>Фильтры:</b></label>
     <form method="GET" action="/">
         <input type="hidden" name="category" th:value="${category}" />
-        <!-- Фильтр по цвету -->
+        <input type="hidden" name="searchIds" th:value="${searchIds}">
         <div class="mt-2">
             <label for="color">Цвет</label>
             <select id="color" name="color" class="form-control">
@@ -206,7 +195,6 @@
                         th:selected="${filters['color'] != null and filters['color'] == color.colorId.toString()}"></option>
             </select>
         </div>
-        <!-- Фильтр по материалу -->
         <div class="mt-2">
             <label for="material">Материал</label>
             <select id="material" name="material" class="form-control">
@@ -217,7 +205,6 @@
                         th:selected="${filters['material'] != null and filters['material'] == material.materialId.toString()}"></option>
             </select>
         </div>
-        <!-- Фильтр по производителю -->
         <div class="mt-2">
             <label for="maker">Производитель</label>
             <select id="maker" name="maker" class="form-control" onchange="updateModels()">
@@ -228,7 +215,6 @@
                         th:selected="${filters['maker'] != null and filters['maker'] == maker.makerId.toString()}"></option>
             </select>
         </div>
-        <!-- Фильтр по модели -->
         <div class="mt-2">
             <label for="model">Модель</label>
             <select id="model" name="model" class="form-control">
@@ -240,7 +226,6 @@
                         th:selected="${filters['model'] != null and filters['model'] == model.modelId.toString()}"></option>
             </select>
         </div>
-        <!-- Фильтры по атрибутам категории -->
         <div th:if="${categoryAttributes != null}">
             <div th:each="attribute : ${categoryAttributes}" class="mt-2">
                 <label th:text="${attribute.name}">Атрибут</label>
@@ -287,6 +272,60 @@
             }
             modelSelect.appendChild(option);
         });
+    }
+
+    function performSearch(event) {
+        event.preventDefault(); // Предотвращаем отправку формы по умолчанию
+        const searchQuery = document.querySelector('.search-input').value;
+        if (!searchQuery.trim()) {
+            clearSearch();
+            return;
+        }
+
+        console.log('Performing search for query:', searchQuery);
+
+        fetch(`/search?q=${encodeURIComponent(searchQuery)}`)
+            .then(response => {
+                console.log('Search response status:', response.status);
+                if (!response.ok) {
+                    throw new Error('Network response was not ok: ' + response.statusText);
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log('Search results:', data);
+                const searchIds = data.map(item => item.itemId).join(',');
+                console.log('Search IDs:', searchIds);
+                const form = document.getElementById('searchForm');
+                const searchIdsInput = document.getElementById('searchIds');
+                if (!searchIdsInput) {
+                    console.error('searchIds input not found!');
+                    return;
+                }
+                searchIdsInput.value = searchIds;
+                console.log('searchIds input value set to:', searchIdsInput.value);
+                form.submit();
+            })
+            .catch(error => {
+                console.error('Error during search:', error);
+                const form = document.getElementById('searchForm');
+                const searchIdsInput = document.getElementById('searchIds');
+                if (searchIdsInput) {
+                    searchIdsInput.value = '';
+                }
+                form.submit();
+            });
+    }
+
+    function clearSearch() {
+        console.log('Clearing search');
+        const form = document.getElementById('searchForm');
+        document.querySelector('.search-input').value = '';
+        const searchIdsInput = document.getElementById('searchIds');
+        if (searchIdsInput) {
+            searchIdsInput.value = '';
+        }
+        form.submit();
     }
 
     window.onload = function() {

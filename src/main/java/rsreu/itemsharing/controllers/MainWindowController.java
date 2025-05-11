@@ -56,30 +56,53 @@ public class MainWindowController {
     @GetMapping("/search")
     @ResponseBody
     public List<ItemDocument> search(@RequestParam String q) {
-        return itemSearchService.search(q);
+        System.out.println("Search query received: " + q);
+        List<ItemDocument> results = itemSearchService.search(q);
+        System.out.println("Search results: " + results);
+        return results;
     }
 
-
-    @GetMapping()
+    @GetMapping
     public String catalog(@RequestParam(required = false) Long category,
+                          @RequestParam(required = false) String search,
+                          @RequestParam(required = false) String searchIds,
                           @RequestParam(required = false) Map<String, String> filters,
                           Model model) {
+        System.out.println("Catalog params - category: " + category + ", search: " + search + ", searchIds: " + searchIds);
+
         if (filters != null) {
             filters.remove("category");
             filters.remove("continue");
+            filters.remove("search");
+            filters.remove("searchIds");
         }
 
-        List<Item> items;
+        // Получаем список ID из поиска
+        List<String> searchItemIds = (searchIds != null && !searchIds.trim().isEmpty())
+                ? Arrays.asList(searchIds.split(","))
+                : null;
+        System.out.println("Parsed search item IDs: " + searchItemIds);
 
-        if (category != null) {
-            Category categoryEntity = categoryRepository.findById(category).orElse(null);
-            if (categoryEntity != null) {
-                items = itemRepository.findByCategory(categoryEntity);
+        List<Item> items;
+        if (searchItemIds != null && !searchItemIds.isEmpty()) {
+            // Фильтруем вещи по ID из поиска
+            items = itemRepository.findAllById(searchItemIds);
+            System.out.println("Items fetched by search IDs: " + items);
+        } else {
+            // Если нет результатов поиска, используем категорию или все вещи
+            if (category != null) {
+                Category categoryEntity = categoryRepository.findById(category).orElse(null);
+                if (categoryEntity != null) {
+                    items = itemRepository.findByCategory(categoryEntity);
+                    System.out.println("Items fetched by category: " + items);
+                } else {
+                    items = itemRepository.findAll();
+                    System.out.println("All items fetched (no category): " + items);
+                }
             } else {
                 items = itemRepository.findAll();
+                System.out.println("All items fetched (no search, no category): " + items);
             }
-        } else {
-            items = itemRepository.findAll();
         }
 
         // Загружаем атрибуты категории
@@ -135,18 +158,19 @@ public class MainWindowController {
                 itemAttributeMap.put("model", String.valueOf(item.getModel().getModelId()));
 
                 for (ItemAttribute itemAttribute : itemAttributes) {
-                    Attribute attribute = attributeRepository.findById(itemAttribute.getId().getAttribute()).orElseThrow();
-                    String attributeName = attribute.getName();
-                    AttributeType type = attribute.getType();
-
-                    if (type == AttributeType.ENUM) {
-                        itemAttributeMap.put(attributeName, itemAttribute.getValue());
-                    } else if (type == AttributeType.NUMBER) {
-                        try {
-                            double value = Double.parseDouble(itemAttribute.getValue());
-                            itemAttributeMap.put(attributeName, Double.toString(value));
-                        } catch (NumberFormatException e) {
-                            itemAttributeMap.put(attributeName, "Ошибка данных");
+                    Attribute attribute = attributeRepository.findById(itemAttribute.getId().getAttribute()).orElse(null);
+                    if (attribute != null) {
+                        String attributeName = attribute.getName();
+                        AttributeType type = attribute.getType();
+                        if (type == AttributeType.ENUM) {
+                            itemAttributeMap.put(attributeName, itemAttribute.getValue());
+                        } else if (type == AttributeType.NUMBER) {
+                            try {
+                                double value = Double.parseDouble(itemAttribute.getValue());
+                                itemAttributeMap.put(attributeName, Double.toString(value));
+                            } catch (NumberFormatException e) {
+                                itemAttributeMap.put(attributeName, "Ошибка данных");
+                            }
                         }
                     }
                 }
@@ -189,6 +213,7 @@ public class MainWindowController {
             }
 
             items = filteredItems;
+            System.out.println("Items after attribute filters: " + items);
         }
 
         // Загружаем фото товаров
@@ -198,9 +223,8 @@ public class MainWindowController {
             List<String> photoUrls = itemPhotoLinks.stream()
                     .map(link -> normalizePhotoUrl(link.getPhotoLink().getUrl()))
                     .collect(Collectors.toList());
-            // Если у товара нет фотографий, добавляем запасной URL
             if (photoUrls.isEmpty()) {
-                photoUrls = Collections.singletonList("/images/default.png"); // Относительный путь к запасному изображению
+                photoUrls = Collections.singletonList("/images/default.png");
             }
             photoUrlsMap.put(item.getItemId(), photoUrls);
         }
@@ -217,6 +241,8 @@ public class MainWindowController {
         model.addAttribute("materials", materials);
         model.addAttribute("makers", makers);
         model.addAttribute("models", models);
+        model.addAttribute("search", search);
+        model.addAttribute("searchIds", searchIds);
 
         return "catalog";
     }
