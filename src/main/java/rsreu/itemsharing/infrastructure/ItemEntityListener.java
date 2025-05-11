@@ -24,9 +24,12 @@ public class ItemEntityListener {
                 item.getItemId(),
                 item.getName(),
                 item.getDescription(),
-                item.getAddress()
+                item.getAddress(),
+                item.getColor() != null ? item.getColor().getName() : null,
+                item.getMaterial() != null ? item.getMaterial().getName() : null,
+                item.getMaker() != null ? item.getMaker().getName() : null,
+                item.getModel() != null ? item.getModel().getName() : null
         );
         searchRepository.save(doc);
     }
 }
-

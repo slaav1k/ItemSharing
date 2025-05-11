@@ -19,13 +19,16 @@ public class ItemSearchService {
                 item.getItemId(),
                 item.getName(),
                 item.getDescription(),
-                item.getAddress()
+                item.getAddress(),
+                item.getColor() != null ? item.getColor().getName() : null,
+                item.getMaterial() != null ? item.getMaterial().getName() : null,
+                item.getMaker() != null ? item.getMaker().getName() : null,
+                item.getModel() != null ? item.getModel().getName() : null
         );
         repository.save(doc);
     }
 
     public List<ItemDocument> search(String keyword) {
-        return repository.findByNameContaining(keyword);
+        return repository.searchByMultipleFields(keyword);
     }
 }
-

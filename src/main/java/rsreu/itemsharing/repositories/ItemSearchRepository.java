@@ -9,6 +9,6 @@ import java.util.List;
 public interface ItemSearchRepository extends ElasticsearchRepository<ItemDocument, String> {
     List<ItemDocument> findByNameContaining(String name);
 
-    @Query("{\"multi_match\": {\"query\": \"?0\", \"fields\": [\"name\", \"description\", \"color\", \"model\", \"brand\"]}}")
+    @Query("{\"multi_match\": {\"query\": \"?0\", \"fields\": [\"name\", \"description\", \"address\", \"color\", \"material\", \"maker\", \"model\"]}}")
     List<ItemDocument> searchByMultipleFields(String query);
 }
