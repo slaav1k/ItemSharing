@@ -84,12 +84,25 @@
             align-items: center;
             cursor: pointer;
             color: #495057;
+            transition: color 0.2s;
+        }
+        .search-btn:hover,
+        .clear-btn:hover {
+            color: #007bff;
+        }
+        .search-btn svg {
+            width: 16px;
+            height: 22px;
+        }
+        .clear-btn svg {
+            width: 16px;
+            height: 22px;
         }
         .search-btn {
-            right: 40px;
+            right: 5px;
         }
         .clear-btn {
-            right: 10px;
+            right: -5px;
         }
     </style>
 </head>
@@ -106,22 +119,27 @@
                     <option th:each="cat : ${categories}" th:value="${cat.categoryId}" th:text="${cat.name}"
                             th:selected="${cat.categoryId == category}"></option>
                 </select>
+                <input type="hidden" name="search" th:value="${search}" />
+                <input type="hidden" name="searchIds" th:value="${searchIds}" />
+                <input th:each="filter : ${filters}" th:name="${filter.key}" th:value="${filter.value}" type="hidden" />
             </div>
         </form>
 
         <div class="flex-grow-1 d-flex justify-content-center">
-            <form class="search-form" id="searchForm" method="get" th:action="@{/}" onsubmit="return false;">
+            <form class="search-form" id="searchForm" method="get" th:action="@{/}" onsubmit="performSearch(event); return false;">
                 <div class="input-group">
                     <input type="text" name="search" class="form-control search-input" placeholder="Поиск вещей..." th:value="${search}">
                     <input type="hidden" name="searchIds" id="searchIds" th:value="${searchIds}">
+                    <input type="hidden" name="category" th:value="${category}" />
+                    <input th:each="filter : ${filters}" th:name="${filter.key}" th:value="${filter.value}" type="hidden" />
                     <span class="input-group-text">
                         <button type="button" class="btn search-btn p-0" onclick="performSearch(event)">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="20" fill="currentColor" class="bi bi-search" viewBox="0 0 16 20">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-search" viewBox="0 0 16 16">
                                 <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/>
                             </svg>
                         </button>
-                        <button type="button" class="btn clear-btn p-0" onclick="clearSearch()">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="20" fill="currentColor" class="bi bi-x" viewBox="0 0 16 20">
+                        <button type="button" class="btn clear-btn p-0" onclick="clearSearch()" th:style="${search != null and search != ''} ? 'display: block' : 'display: none'">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-x" viewBox="0 0 16 16">
                                 <path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z"/>
                             </svg>
                         </button>
@@ -184,7 +202,8 @@
     <label><b>Фильтры:</b></label>
     <form method="GET" action="/">
         <input type="hidden" name="category" th:value="${category}" />
-        <input type="hidden" name="searchIds" th:value="${searchIds}">
+        <input type="hidden" name="search" th:value="${search}" />
+        <input type="hidden" name="searchIds" th:value="${searchIds}" />
         <div class="mt-2">
             <label for="color">Цвет</label>
             <select id="color" name="color" class="form-control">
@@ -247,7 +266,7 @@
             </div>
         </div>
         <button type="submit" class="btn btn-primary mt-2">Применить фильтры</button>
-        <a th:href="@{/?category={category}(category=${category})}" class="btn btn-secondary mt-2">Сбросить фильтры</a>
+        <a th:href="@{/?category={category}&search={search}&searchIds={searchIds}(category=${category},search=${search},searchIds=${searchIds})}" class="btn btn-secondary mt-2">Сбросить фильтры</a>
     </form>
 </div>
 
@@ -275,8 +294,11 @@
     }
 
     function performSearch(event) {
-        event.preventDefault(); // Предотвращаем отправку формы по умолчанию
+        event.preventDefault();
         const searchQuery = document.querySelector('.search-input').value;
+        const form = document.getElementById('searchForm');
+        const searchIdsInput = document.getElementById('searchIds');
+
         if (!searchQuery.trim()) {
             clearSearch();
             return;
@@ -286,7 +308,6 @@
 
         fetch(`/search?q=${encodeURIComponent(searchQuery)}`)
             .then(response => {
-                console.log('Search response status:', response.status);
                 if (!response.ok) {
                     throw new Error('Network response was not ok: ' + response.statusText);
                 }
@@ -296,8 +317,6 @@
                 console.log('Search results:', data);
                 const searchIds = data.map(item => item.itemId).join(',');
                 console.log('Search IDs:', searchIds);
-                const form = document.getElementById('searchForm');
-                const searchIdsInput = document.getElementById('searchIds');
                 if (!searchIdsInput) {
                     console.error('searchIds input not found!');
                     return;
@@ -308,8 +327,6 @@
             })
             .catch(error => {
                 console.error('Error during search:', error);
-                const form = document.getElementById('searchForm');
-                const searchIdsInput = document.getElementById('searchIds');
                 if (searchIdsInput) {
                     searchIdsInput.value = '';
                 }
@@ -325,11 +342,22 @@
         if (searchIdsInput) {
             searchIdsInput.value = '';
         }
+        document.querySelector('.clear-btn').style.display = 'none';
         form.submit();
     }
 
+    // Показ/скрытие крестика при вводе текста
+    document.querySelector('.search-input').addEventListener('input', function() {
+        const clearBtn = document.querySelector('.clear-btn');
+        clearBtn.style.display = this.value.trim() ? 'block' : 'none';
+    });
+
     window.onload = function() {
         updateModels();
+        // Инициализация видимости крестика при загрузке страницы
+        const searchInput = document.querySelector('.search-input');
+        const clearBtn = document.querySelector('.clear-btn');
+        clearBtn.style.display = searchInput.value.trim() ? 'block' : 'none';
     };
 </script>
 </body>

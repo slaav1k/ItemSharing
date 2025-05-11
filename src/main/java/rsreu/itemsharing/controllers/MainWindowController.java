@@ -83,13 +83,15 @@ public class MainWindowController {
                 : null;
         System.out.println("Parsed search item IDs: " + searchItemIds);
 
-        List<Item> items;
+        List<Item> items = new ArrayList<>();
+
+        // 1. Получаем начальный список элементов
         if (searchItemIds != null && !searchItemIds.isEmpty()) {
-            // Фильтруем вещи по ID из поиска
+            // Если есть результаты поиска, начинаем с них
             items = itemRepository.findAllById(searchItemIds);
             System.out.println("Items fetched by search IDs: " + items);
         } else {
-            // Если нет результатов поиска, используем категорию или все вещи
+            // Если поиска нет, берем все элементы или по категории
             if (category != null) {
                 Category categoryEntity = categoryRepository.findById(category).orElse(null);
                 if (categoryEntity != null) {
@@ -105,7 +107,18 @@ public class MainWindowController {
             }
         }
 
-        // Загружаем атрибуты категории
+        // 2. Фильтрация по категории, если выбрана
+        if (category != null && searchItemIds != null && !searchItemIds.isEmpty()) {
+            Category categoryEntity = categoryRepository.findById(category).orElse(null);
+            if (categoryEntity != null) {
+                items = items.stream()
+                        .filter(item -> item.getCategory().getCategoryId().equals(category))
+                        .collect(Collectors.toList());
+                System.out.println("Items after category filter: " + items);
+            }
+        }
+
+        // 3. Загружаем атрибуты категории
         List<Attribute> attributes = new ArrayList<>();
         Map<Long, List<String>> enumValuesMap = new HashMap<>();
 
@@ -133,6 +146,8 @@ public class MainWindowController {
         List<Maker> makers = makerRepository.findAll();
         List<rsreu.itemsharing.entities.Model> models = modelRepository.findAll();
 
+        // 4. Применяем фильтры
+
         boolean allFiltersNull = true;
         if (filters != null) {
             for (Map.Entry<String, String> filter : filters.entrySet()) {
@@ -144,7 +159,6 @@ public class MainWindowController {
             }
         }
 
-        // Применяем фильтры
         if (filters != null && !filters.isEmpty() && !allFiltersNull) {
             List<Item> filteredItems = new ArrayList<>();
 
@@ -216,7 +230,7 @@ public class MainWindowController {
             System.out.println("Items after attribute filters: " + items);
         }
 
-        // Загружаем фото товаров
+        // 5. Загружаем фото товаров
         Map<String, List<String>> photoUrlsMap = new HashMap<>();
         for (Item item : items) {
             List<ItemPhotoLink> itemPhotoLinks = itemPhotoLinkRepository.findByItem(item);
@@ -229,7 +243,7 @@ public class MainWindowController {
             photoUrlsMap.put(item.getItemId(), photoUrls);
         }
 
-        // Передаём данные в шаблон
+        // 6. Передаём данные в шаблон
         model.addAttribute("items", items);
         model.addAttribute("photoUrlsMap", photoUrlsMap);
         model.addAttribute("categories", categoryRepository.findAll());
