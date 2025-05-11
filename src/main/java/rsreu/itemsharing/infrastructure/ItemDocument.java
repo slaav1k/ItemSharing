@@ -5,6 +5,8 @@ import org.springframework.data.elasticsearch.annotations.Document;
 import org.springframework.data.elasticsearch.annotations.Field;
 import org.springframework.data.elasticsearch.annotations.FieldType;
 
+import java.util.Map;
+
 @Document(indexName = "items")
 public class ItemDocument {
 
@@ -32,6 +34,9 @@ public class ItemDocument {
 
     @Field(type = FieldType.Text, analyzer = "russian")
     private String model;
+
+    @Field(type = FieldType.Text, analyzer = "russian")
+    private Map<String, String> customAttributes;
 
     // Геттеры и сеттеры
     public String getItemId() {
@@ -98,9 +103,17 @@ public class ItemDocument {
         this.model = model;
     }
 
+    public Map<String, String> getCustomAttributes() {
+        return customAttributes;
+    }
+
+    public void setCustomAttributes(Map<String, String> customAttributes) {
+        this.customAttributes = customAttributes;
+    }
+
     public ItemDocument() {}
 
-    public ItemDocument(String itemId, String name, String description, String address, String color, String material, String maker, String model) {
+    public ItemDocument(String itemId, String name, String description, String address, String color, String material, String maker, String model, Map<String, String> customAttributes) {
         this.itemId = itemId;
         this.name = name;
         this.description = description;
@@ -109,5 +122,6 @@ public class ItemDocument {
         this.material = material;
         this.maker = maker;
         this.model = model;
+        this.customAttributes = customAttributes;
     }
 }

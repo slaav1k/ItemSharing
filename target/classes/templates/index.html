@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin Reindex</title>
+    <meta name="_csrf" th:content="${_csrf.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 2em;
+            background-color: #f2f2f2;
+        }
+
+        .container {
+            max-width: 400px;
+            margin: 0 auto;
+            padding: 2em;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            border: none;
+            background-color: #4CAF50;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        #message {
+            margin-top: 1em;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h2>Admin Panel</h2>
+    <p>Нажмите кнопку, чтобы перезапустить индексацию всех вещей:</p>
+    <button onclick="startReindex()">Запустить реиндексацию</button>
+    <div id="message"></div>
+</div>
+
+<script>
+    function startReindex() {
+        const token = document.querySelector('meta[name="_csrf"]').getAttribute('content');
+        const header = document.querySelector('meta[name="_csrf_header"]').getAttribute('content');
+
+        fetch('/admin/index', {
+            method: 'POST',
+            headers: {
+                [header]: token // Добавляем CSRF-токен в заголовки
+            }
+        })
+            .then(response => {
+                if (!response.ok) throw new Error("Ошибка сервера: " + response.status);
+                return response.text();
+            })
+            .then(text => {
+                document.getElementById('message').innerText = text;
+            })
+            .catch(error => {
+                document.getElementById('message').innerText = 'Ошибка: ' + error.message;
+            });
+    }
+</script>
+</body>
+</html>
