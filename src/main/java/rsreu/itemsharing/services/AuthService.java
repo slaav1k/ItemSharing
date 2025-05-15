@@ -19,6 +19,11 @@ public class AuthService {
     }
 
     public void registerUser(String city, String street, String houseNumber, String apartment, User user, String phone) throws IllegalArgumentException {
+        // Проверка уникальности passportNum
+        if (userRepository.findById(user.getPassportNum()).isPresent()) {
+            throw new IllegalArgumentException("Пользователь с таким номером паспорта уже зарегистрирован.");
+        }
+
         // Проверка уникальности email
         if (userRepository.findByEmail(user.getEmail()).isPresent()) {
             throw new IllegalArgumentException("Email уже зарегистрирован.");
@@ -29,11 +34,7 @@ public class AuthService {
             throw new IllegalArgumentException("Телефон уже зарегистрирован.");
         }
 
-        // Проверка и очистка номера телефона
-        phone = phone.replaceAll("[^0-9]", ""); // Оставляем только цифры
-        if (phone.length() != 11 || !phone.startsWith("7")) {
-            throw new IllegalArgumentException("Неверный формат телефона. Используйте 7XXXXXXXXX.");
-        }
+        // Устанавливаем номер телефона
         user.setPhone(phone);
 
         // Склеивание адреса

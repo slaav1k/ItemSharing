@@ -5,131 +5,21 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Item Details</title>
+  <title>Настройки</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
-  <!-- Подключаем библиотеку flatpickr -->
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
-  <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-
+  <script src="https://cdn.jsdelivr.net/npm/inputmask@5.0.8/dist/inputmask.min.js"></script>
   <style>
-    .parent {
-      display: grid;
-      grid-template-columns: 2fr 1fr; /* 2/3 - карусель, 1/3 - инфо */
-      grid-template-rows: repeat(2, auto);
-      grid-column-gap: 20px;
-      grid-row-gap: 20px;
+    .invalid-feedback {
+      color: #dc3545;
+      font-size: 0.875em;
     }
-
-    .div1 {
-      grid-area: 1 / 1 / 3 / 2; /* Карусель слева, занимает 2 строки */
+    .form-control.is-invalid {
+      border-color: #dc3545;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' width='12' height='12' fill='none' stroke='%23dc3545'%3E%3Ccircle cx='6' cy='6' r='4.5'/%3E%3Cpath stroke-linejoin='round' d='M5.8 3.6h.4L6 6.5z'/%3E%3Ccircle cx='6' cy='8.2' r='.6' fill='%23dc3545' stroke='none'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right calc(0.375em + 0.1875rem) center;
+      background-size: calc(0.75em + 0.375rem) calc(0.75em + 0.375rem);
     }
-
-    .div2 {
-      grid-area: 1 / 2 / 2 / 3; /* Верхняя правая часть */
-    }
-
-    .div3 {
-      grid-area: 2 / 2 / 3 / 3; /* Нижняя правая часть */
-    }
-
-    .carousel-inner {
-      position: relative;
-      height: 70vh;
-      max-height: 800px;
-    }
-
-    .carousel-item {
-      height: 100%;
-      width: 100%;
-      overflow: hidden;
-      position: relative;
-    }
-
-    .blurred-background {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background-size: cover;
-      background-position: center;
-      filter: blur(10px);
-      transform: scale(1.2); /* Больше размытия */
-    }
-
-    .foreground-image {
-      position: relative;
-      z-index: 1;
-      width: 100%;
-      height: 100%;
-      object-fit: contain;
-    }
-
-    .carousel-thumbnails {
-      display: flex;
-      justify-content: center;
-      gap: 10px;
-      margin-top: 10px;
-      overflow-x: auto;
-      padding-bottom: 10px;
-    }
-
-    .carousel-thumbnails img {
-      width: 80px;
-      height: 60px;
-      object-fit: cover;
-      cursor: pointer;
-      border: 2px solid transparent;
-    }
-
-    .carousel-thumbnails img.active {
-      border: 2px solid #007bff;
-    }
-    .review-photos {
-      display: flex;
-      gap: 10px;
-      margin-top: 10px;
-    }
-
-    .review-photo-thumbnail {
-      width: 80px;
-      height: 80px;
-      object-fit: cover;
-      cursor: pointer;
-      border-radius: 5px;
-    }
-
-    .owner-circle {
-      display: inline-flex;
-      justify-content: center;
-      align-items: center;
-      width: 30px;
-      height: 30px;
-      border-radius: 50%;
-      font-weight: bold;
-      color: white;
-      font-size: 16px;
-      text-transform: uppercase;
-    }
-
-    .owner-link {
-      text-decoration: none; /* Убираем подчёркивание у ссылки */
-    }
-
-    .owner-circle {
-      display: inline-flex;
-      justify-content: center;
-      align-items: center;
-      width: 30px;
-      height: 30px;
-      border-radius: 50%;
-      font-weight: bold;
-      color: white;
-      font-size: 16px;
-      text-transform: uppercase;
-      margin-left: 8px; /* Отступ от имени */
-    }
-
   </style>
 </head>
 <body>
@@ -140,21 +30,19 @@
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
       <span class="navbar-toggler-icon"></span>
     </button>
-
     <div class="collapse navbar-collapse" id="navbarNav">
       <ul class="navbar-nav ms-auto">
-        <!-- Кнопки входа/выхода -->
         <span sec:authorize="isAuthenticated()">
-                    <form th:action="@{/logout}" method="post" style="display:inline;">
-                        <a th:href="@{/user/{username}(username=${#authentication.principal.username})}" class="btn btn-primary">Профиль</a>
-                        <button type="submit" class="btn btn-danger">Выход</button>
-                    </form>
-                </span>
+          <form th:action="@{/logout}" method="post" style="display:inline;">
+            <a th:href="@{/user/{username}(username=${#authentication.principal.username})}" class="btn btn-primary">Профиль</a>
+            <button type="submit" class="btn btn-danger">Выход</button>
+          </form>
+        </span>
         <span sec:authorize="isAnonymous()">
-                    <form th:action="@{/login}" method="get" style="display:inline;">
-                        <button type="submit" class="btn btn-success">Вход</button>
-                    </form>
-                </span>
+          <form th:action="@{/login}" method="get" style="display:inline;">
+            <button type="submit" class="btn btn-success">Вход</button>
+          </form>
+        </span>
       </ul>
     </div>
   </div>
@@ -164,35 +52,58 @@
   <h2>Настройки</h2>
 
   <!-- Форма изменения данных -->
-  <form th:action="@{/settings/update}" method="post">
-    <div class="form-group">
-      <label for="fullName">Полное имя</label>
-      <input type="text" class="form-control" id="fullName" name="fullName" th:value="${user.fullName}" required>
+  <form th:action="@{/settings/update}" method="post" th:object="${settingsForm}" id="settingsForm">
+    <div class="form-group mb-3">
+      <label for="fullName" class="form-label">Полное имя*</label>
+      <input type="text" th:field="*{fullName}" id="fullName" class="form-control" placeholder="ФИО" required>
+      <div th:errors="*{fullName}" class="invalid-feedback d-block"></div>
     </div>
-    <div class="form-group">
-      <label for="phone">Телефон</label>
-      <input type="text" class="form-control" id="phone" name="phone" th:value="${user.phone}" required>
+    <div class="form-group mb-3">
+      <label for="phone" class="form-label">Телефон*</label>
+      <input type="text" th:field="*{phone}" id="phone" class="form-control" placeholder="7XXXXXXXXXX" required>
+      <div id="phoneError" class="invalid-feedback" style="display: none;">
+        Введите номер в формате 7XXXXXXXXXX (11 цифр, начиная с 7).
+      </div>
+      <div th:errors="*{phone}" class="invalid-feedback d-block"></div>
     </div>
-    <div class="form-group">
-      <label for="email">Электронная почта</label>
-      <input type="email" class="form-control" id="email" name="email" th:value="${user.email}" required>
+    <div class="form-group mb-3">
+      <label for="email" class="form-label">Электронная почта*</label>
+      <input type="email" th:field="*{email}" id="email" class="form-control" placeholder="Email" required>
+      <div th:errors="*{email}" class="invalid-feedback d-block"></div>
     </div>
-    <div class="form-group">
-      <label for="address">Адрес</label>
-      <input type="text" class="form-control" id="address" name="address" th:value="${user.address}" required>
+    <div class="form-group mb-3">
+      <label for="city" class="form-label">Город*</label>
+      <select th:field="*{city}" id="city" class="form-control" required>
+        <option value="" disabled selected>Выберите город</option>
+        <option th:each="city : ${cities}" th:value="${city}" th:text="${city}"></option>
+      </select>
+      <div th:errors="*{city}" class="invalid-feedback d-block"></div>
     </div>
-    <div class="form-group">
-      <label for="password">Пароль</label>
-      <input type="password" class="form-control" id="password" name="password" required>
+    <div class="form-group mb-3">
+      <label for="street" class="form-label">Улица*</label>
+      <input type="text" th:field="*{street}" id="street" class="form-control" placeholder="Улица" required>
+      <div th:errors="*{street}" class="invalid-feedback d-block"></div>
     </div>
-    <br>
-
-    <!-- Центрируем кнопки -->
-    <div class="d-flex justify-content-center gap-3">
+    <div class="form-group mb-3">
+      <label for="houseNumber" class="form-label">Номер дома*</label>
+      <input type="text" th:field="*{houseNumber}" id="houseNumber" class="form-control" placeholder="Номер дома" required>
+      <div th:errors="*{houseNumber}" class="invalid-feedback d-block"></div>
+    </div>
+    <div class="form-group mb-3">
+      <label for="apartment" class="form-label">Квартира</label>
+      <input type="text" th:field="*{apartment}" id="apartment" class="form-control" placeholder="Квартира (необязательно)">
+      <div th:errors="*{apartment}" class="invalid-feedback d-block"></div>
+    </div>
+    <div class="form-group mb-3">
+      <label for="password" class="form-label">Пароль*</label>
+      <input type="password" th:field="*{password}" id="password" class="form-control" placeholder="Пароль" required>
+      <div th:errors="*{password}" class="invalid-feedback d-block"></div>
+    </div>
+    <div class="d-flex justify-content-center gap-3 mb-3">
       <button type="submit" class="btn btn-primary">Сохранить изменения</button>
-
     </div>
   </form>
+
   <form th:action="@{/settings/delete}" method="post" onsubmit="return confirmDelete()">
     <div class="d-flex justify-content-center gap-3 mt-4">
       <button type="submit" class="btn btn-danger">Удалить аккаунт</button>
@@ -200,18 +111,67 @@
   </form>
 </div>
 
-
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
 <script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const phoneInput = document.getElementById('phone');
+    const phoneError = document.getElementById('phoneError');
+    const form = document.getElementById('settingsForm');
+
+    // Инициализация Inputmask для телефона
+    Inputmask({
+      mask: "79999999999",
+      placeholder: "",
+      showMaskOnHover: false,
+      showMaskOnFocus: false,
+      clearIncomplete: false,
+      greedy: false,
+      onBeforePaste: function(pastedValue) {
+        return pastedValue.replace(/\D/g, '');
+      },
+      onBeforeWrite: function(event, buffer) {
+        return { buffer: buffer.join('').replace(/\D/g, '').split('') };
+      }
+    }).mask(phoneInput);
+
+    form.addEventListener('submit', function(event) {
+      // Валидация телефона
+      const rawPhoneValue = phoneInput.value;
+      const phoneValue = rawPhoneValue.replace(/\D/g, '');
+      const phoneRegex = /^7[0-9]{10}$/;
+
+      if (!phoneRegex.test(phoneValue) || phoneValue.length !== 11) {
+        console.log("Validation failed: Invalid phone format");
+        event.preventDefault();
+        event.stopPropagation();
+        phoneInput.classList.add('is-invalid');
+        phoneError.style.display = 'block';
+        return false;
+      }
+
+      console.log("Validation passed: Allowing form submission");
+      phoneInput.classList.remove('is-invalid');
+      phoneError.style.display = 'none';
+    });
+
+    phoneInput.addEventListener('input', function() {
+      const rawValue = phoneInput.value;
+      const phoneValue = rawValue.replace(/\D/g, '');
+      console.log("Phone value on input:", phoneValue);
+      console.log("Phone value length on input:", phoneValue.length);
+      if (phoneValue.length > 0 && !/^7[0-9]{0,10}$/.test(phoneValue)) {
+        phoneInput.classList.add('is-invalid');
+        phoneError.style.display = 'block';
+      } else {
+        phoneInput.classList.remove('is-invalid');
+        phoneError.style.display = 'none';
+      }
+    });
+  });
+
   function confirmDelete() {
     return confirm("Вы точно уверены, что хотите удалить аккаунт? Это действие необратимо.");
   }
 </script>
-
-
-
-
-
-
 </body>
 </html>

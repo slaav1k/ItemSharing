@@ -1,4 +1,4 @@
-package rsreu.itemsharing.entities;
+package rsreu.itemsharing.dto;
 
 import java.util.HashMap;
 import java.util.Map;

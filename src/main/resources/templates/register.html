@@ -4,10 +4,18 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Регистрация</title>
-  <!-- Подключаем Bootstrap -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
-  <!-- Подключаем Inputmask -->
   <script src="https://cdn.jsdelivr.net/npm/inputmask@5.0.8/dist/inputmask.min.js"></script>
+  <style>
+    .invalid-feedback {
+      color: #dc3545;
+      font-size: 0.875em;
+    }
+    .form-control.is-invalid {
+      border-color: #dc3545;
+      background-image: none;
+    }
+  </style>
 </head>
 <body class="d-flex justify-content-center align-items-center vh-100 bg-light">
 
@@ -17,55 +25,63 @@
       <div class="card">
         <div class="card-body">
           <h2 class="text-center mb-4">Регистрация</h2>
-          <form method="post" th:action="@{/register}" id="registerForm">
+          <form method="post" th:action="@{/register}" id="registerForm" th:object="${registerForm}">
             <div class="mb-3">
               <label for="passportNum" class="form-label">Паспорт*</label>
-              <input type="text" name="passportNum" id="passportNum" class="form-control" placeholder="Паспорт" required>
+              <input type="text" th:field="*{passportNum}" id="passportNum" class="form-control" placeholder="1234567890" required>
+              <div id="passportError" class="invalid-feedback" style="display: none;">
+                Номер паспорта должен содержать 10 цифр.
+              </div>
+              <div th:errors="*{passportNum}" class="invalid-feedback d-block"></div>
+              <div th:if="${passportError}" class="invalid-feedback d-block" th:text="${passportError}"></div>
             </div>
             <div class="mb-3">
               <label for="fullName" class="form-label">ФИО*</label>
-              <input type="text" name="fullName" id="fullName" class="form-control" placeholder="ФИО" required>
+              <input type="text" th:field="*{fullName}" id="fullName" class="form-control" placeholder="ФИО" required>
+              <div th:errors="*{fullName}" class="invalid-feedback d-block"></div>
             </div>
             <div class="mb-3">
               <label for="phone" class="form-label">Телефон*</label>
-              <input type="text" name="phone" id="phone" class="form-control" placeholder="7XXXXXXXXXX" required>
+              <input type="text" th:field="*{phone}" id="phone" class="form-control" placeholder="7XXXXXXXXXX" required>
               <div id="phoneError" class="invalid-feedback" style="display: none;">
                 Введите номер в формате 7XXXXXXXXXX (11 цифр, начиная с 7).
               </div>
-              <div th:if="${phoneError}" class="invalid-feedback d-block">
-                <span th:text="${phoneError}"></span>
-              </div>
+              <div th:errors="*{phone}" class="invalid-feedback d-block"></div>
+              <div th:if="${phoneError}" class="invalid-feedback d-block" th:text="${phoneError}"></div>
             </div>
             <div class="mb-3">
               <label for="email" class="form-label">Email*</label>
-              <input type="email" name="email" id="email" class="form-control" placeholder="Email" required>
-              <div th:if="${emailError}" class="invalid-feedback d-block">
-                <span th:text="${emailError}"></span>
-              </div>
+              <input type="email" th:field="*{email}" id="email" class="form-control" placeholder="Email" required>
+              <div th:errors="*{email}" class="invalid-feedback d-block"></div>
+              <div th:if="${emailError}" class="invalid-feedback d-block" th:text="${emailError}"></div>
             </div>
             <div class="mb-3">
               <label for="password" class="form-label">Пароль*</label>
-              <input type="password" name="password" id="password" class="form-control" placeholder="Пароль" required>
+              <input type="password" th:field="*{password}" id="password" class="form-control" placeholder="Пароль" required>
+              <div th:errors="*{password}" class="invalid-feedback d-block"></div>
             </div>
-            <!-- Динамический список городов -->
             <div class="mb-3">
               <label for="city" class="form-label">Город*</label>
-              <select name="city" id="city" class="form-control" required>
+              <select th:field="*{city}" id="city" class="form-control" required>
                 <option value="" disabled selected>Выберите город</option>
                 <option th:each="city : ${cities}" th:value="${city}" th:text="${city}"></option>
               </select>
+              <div th:errors="*{city}" class="invalid-feedback d-block"></div>
             </div>
             <div class="mb-3">
               <label for="street" class="form-label">Улица*</label>
-              <input type="text" name="street" id="street" class="form-control" placeholder="Улица" required>
+              <input type="text" th:field="*{street}" id="street" class="form-control" placeholder="Улица" required>
+              <div th:errors="*{street}" class="invalid-feedback d-block"></div>
             </div>
             <div class="mb-3">
               <label for="houseNumber" class="form-label">Номер дома*</label>
-              <input type="text" name="houseNumber" id="houseNumber" class="form-control" placeholder="Номер дома" required>
+              <input type="text" th:field="*{houseNumber}" id="houseNumber" class="form-control" placeholder="Номер дома" required>
+              <div th:errors="*{houseNumber}" class="invalid-feedback d-block"></div>
             </div>
             <div class="mb-3">
               <label for="apartment" class="form-label">Квартира</label>
-              <input type="text" name="apartment" id="apartment" class="form-control" placeholder="Квартира (необязательно)">
+              <input type="text" th:field="*{apartment}" id="apartment" class="form-control" placeholder="Квартира (необязательно)">
+              <div th:errors="*{apartment}" class="invalid-feedback d-block"></div>
             </div>
             <button type="submit" class="btn btn-primary w-100">Зарегистрироваться</button>
           </form>
@@ -75,21 +91,22 @@
   </div>
 </div>
 
-<!-- Подключаем Bootstrap JS и инициализируем маску -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
 <script>
   document.addEventListener('DOMContentLoaded', function() {
     const phoneInput = document.getElementById('phone');
     const phoneError = document.getElementById('phoneError');
+    const passportInput = document.getElementById('passportNum');
+    const passportError = document.getElementById('passportError');
     const form = document.getElementById('registerForm');
 
-    // Инициализация Inputmask
+    // Инициализация Inputmask для телефона
     Inputmask({
       mask: "79999999999",
       placeholder: "",
       showMaskOnHover: false,
       showMaskOnFocus: false,
-      clearIncomplete: true,
+      clearIncomplete: false, // Отключаем очистку неполного ввода
       greedy: false,
       onBeforePaste: function(pastedValue) {
         return pastedValue.replace(/\D/g, '');
@@ -99,19 +116,28 @@
       }
     }).mask(phoneInput);
 
+    // Инициализация Inputmask для паспорта
+    Inputmask({
+      mask: "9999999999",
+      placeholder: "",
+      showMaskOnHover: false,
+      showMaskOnFocus: false,
+      clearIncomplete: false, // Отключаем очистку неполного ввода
+      greedy: false,
+      onBeforePaste: function(pastedValue) {
+        return pastedValue.replace(/\D/g, '');
+      },
+      onBeforeWrite: function(event, buffer) {
+        return { buffer: buffer.join('').replace(/\D/g, '').split('') };
+      }
+    }).mask(passportInput);
+
     form.addEventListener('submit', function(event) {
-      // Получаем значение напрямую из поля и очищаем его
-      const rawValue = phoneInput.value;
-      const phoneValue = rawValue.replace(/\D/g, '');
+      // Валидация телефона
+      const rawPhoneValue = phoneInput.value;
+      const phoneValue = rawPhoneValue.replace(/\D/g, '');
       const phoneRegex = /^7[0-9]{10}$/;
 
-      // Отладочная информация
-      console.log("Raw value:", rawValue);
-      console.log("Phone value on submit:", phoneValue);
-      console.log("Phone value length:", phoneValue.length);
-      console.log("Regex test result:", phoneRegex.test(phoneValue));
-
-      // Проверка формата номера
       if (!phoneRegex.test(phoneValue) || phoneValue.length !== 11) {
         console.log("Validation failed: Invalid phone format");
         event.preventDefault();
@@ -121,10 +147,23 @@
         return false;
       }
 
-      // Если формат верный, убираем ошибку
+      // Валидация паспорта
+      const passportValue = passportInput.value.replace(/\D/g, '');
+      const passportRegex = /^\d{10}$/;
+      if (!passportRegex.test(passportValue)) {
+        console.log("Validation failed: Invalid passport format");
+        event.preventDefault();
+        event.stopPropagation();
+        passportInput.classList.add('is-invalid');
+        passportError.style.display = 'block';
+        return false;
+      }
+
       console.log("Validation passed: Allowing form submission");
       phoneInput.classList.remove('is-invalid');
       phoneError.style.display = 'none';
+      passportInput.classList.remove('is-invalid');
+      passportError.style.display = 'none';
     });
 
     phoneInput.addEventListener('input', function() {
@@ -134,6 +173,14 @@
       console.log("Phone value length on input:", phoneValue.length);
       phoneInput.classList.remove('is-invalid');
       phoneError.style.display = 'none';
+    });
+
+    passportInput.addEventListener('input', function() {
+      const passportValue = passportInput.value.replace(/\D/g, '');
+      console.log("Passport value on input:", passportValue);
+      console.log("Passport value length on input:", passportValue.length);
+      passportInput.classList.remove('is-invalid');
+      passportError.style.display = 'none';
     });
   });
 </script>
