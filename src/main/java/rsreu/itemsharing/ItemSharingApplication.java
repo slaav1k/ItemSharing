@@ -8,6 +8,7 @@ import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.EnableAspectJAutoProxy;
+import org.springframework.scheduling.annotation.EnableAsync;
 import rsreu.itemsharing.configs.ObjectS3Config;
 
 import javax.sql.DataSource;
@@ -16,6 +17,7 @@ import javax.sql.DataSource;
 @SpringBootApplication
 @EnableConfigurationProperties(ObjectS3Config.class)
 @EnableCaching
+@EnableAsync
 @EnableAspectJAutoProxy
 public class ItemSharingApplication {
 

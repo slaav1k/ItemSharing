@@ -5,6 +5,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import rsreu.itemsharing.entities.*;
+import rsreu.itemsharing.infrastructure.ItemIndexingService;
 import rsreu.itemsharing.repositories.*;
 import rsreu.itemsharing.security.CustomUserDetails;
 
@@ -69,6 +70,9 @@ public class ItemService {
 
     @Autowired
     private S3Service s3Service;
+
+    @Autowired
+    private ItemIndexingService itemIndexingService;
 
     public List<Category> getAllCategories() {
         return categoryRepository.findAll();
@@ -197,12 +201,15 @@ public class ItemService {
         List<Request> requests = requestRepository.findByItem(item);
         List<LocalDate> bookedDates = new ArrayList<>();
         for (Request request : requests) {
-            LocalDate startDateFor = request.getStartDate();
-            LocalDate endDateFor = request.getEndDate();
-            while (!startDateFor.isAfter(endDateFor)) {
-                bookedDates.add(startDateFor);
-                startDateFor = startDateFor.plusDays(1);
+            if (request.getStatus().getStatusId() >= 2 && request.getStatus().getStatusId() <= 4) {
+                LocalDate startDateFor = request.getStartDate();
+                LocalDate endDateFor = request.getEndDate();
+                while (!startDateFor.isAfter(endDateFor)) {
+                    bookedDates.add(startDateFor);
+                    startDateFor = startDateFor.plusDays(1);
+                }
             }
+
         }
 
         for (LocalDate date = startDate; !date.isAfter(endDate); date = date.plusDays(1)) {
@@ -303,6 +310,8 @@ public class ItemService {
                 itemPhotoLinkRepository.save(itemPhotoLink);
             }
         }
+
+        itemIndexingService.indexItemAsync(newItem);
 
         return "success:" + newItem.getItemId();
     }

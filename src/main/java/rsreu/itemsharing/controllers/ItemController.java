@@ -59,8 +59,8 @@ public class ItemController {
         String result = itemService.createRequest(itemId, startDate, endDate, userDetails);
         if (result.startsWith("error")) {
             model.addAttribute("error", result.substring(6));
-            model.addAllAttributes(itemService.getItemRequestDetails(itemId));
-            return "itemRequest";
+            model.addAllAttributes(itemService.getItemDetails(itemId));
+            return "itemCard";
         }
         return "redirect:/item/" + itemId;
     }

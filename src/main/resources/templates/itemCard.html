@@ -122,6 +122,9 @@
                         </div>
                         <form action="#" th:action="@{'/item/' + ${item.itemId} + '/request'}" method="post">
                             <div class="modal-body">
+                                <div th:if="${error}" class="alert alert-danger" role="alert">
+                                    <span th:text="${error}"></span>
+                                </div>
                                 <div class="mb-3">
                                     <label for="startDate" class="form-label">Начальная дата</label>
                                     <input type="date" id="startDate" name="startDate" class="form-control" required min="2025-03-01">
