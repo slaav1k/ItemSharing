@@ -92,10 +92,26 @@
       <label for="description">Описание вещи</label>
       <textarea id="description" class="form-control" name="description" required>[[${item.description}]]</textarea>
     </div>
-    <!-- Адрес -->
+    <!-- Адрес: Город -->
     <div class="form-group mt-2">
-      <label for="address">Адрес</label>
-      <input type="text" id="address" class="form-control" name="address" th:value="${item.address}" required />
+      <label for="city">Город</label>
+      <select id="city" name="city" class="form-control" required>
+        <option value="">Выберите город</option>
+        <option th:each="city : ${cities}"
+                th:value="${city}"
+                th:text="${city}"
+                th:selected="${city == itemCity}"></option>
+      </select>
+    </div>
+    <!-- Адрес: Улица -->
+    <div class="form-group mt-2">
+      <label for="street">Улица</label>
+      <input type="text" id="street" class="form-control" name="street" th:value="${itemStreet}" required />
+    </div>
+    <!-- Адрес: Дом -->
+    <div class="form-group mt-2">
+      <label for="house">Номер дома</label>
+      <input type="text" id="house" class="form-control" name="house" th:value="${itemHouse}" required />
     </div>
     <!-- Вес товара -->
     <div class="form-group mt-2">

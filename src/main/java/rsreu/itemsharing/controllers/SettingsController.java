@@ -38,6 +38,8 @@ public class SettingsController {
         CustomUserDetails customUserDetails = (CustomUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         User currentUser = customUserDetails.getUser();
 
+        System.out.println(currentUser);
+
         // Создаем DTO и заполняем его текущими данными
         SettingsFormDTO settingsForm = new SettingsFormDTO();
         settingsForm.setFullName(currentUser.getFullName());

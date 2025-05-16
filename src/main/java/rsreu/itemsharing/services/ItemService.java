@@ -74,6 +74,192 @@ public class ItemService {
     @Autowired
     private ItemIndexingService itemIndexingService;
 
+    @Autowired
+    private CityService cityService;
+
+    public Map<String, Object> getEditItemFormData(String itemId) {
+        Item item = itemRepository.findById(itemId).orElseThrow();
+        Map<String, Object> modelAttributes = new HashMap<>();
+
+        // Разделение адреса на город, улицу и дом
+        String city = "";
+        String street = "";
+        String house = "";
+        if (item.getAddress() != null && !item.getAddress().isEmpty()) {
+            String[] addressParts = item.getAddress().split(",\\s*");
+            if (addressParts.length >= 3) {
+                city = addressParts[0].trim();
+                street = addressParts[1].trim();
+                house = addressParts[2].trim();
+            } else if (addressParts.length == 2) {
+                city = addressParts[0].trim();
+                street = addressParts[1].trim();
+            } else if (addressParts.length == 1) {
+                city = addressParts[0].trim();
+            }
+        }
+
+        // Добавление списка городов
+        modelAttributes.put("cities", cityService.getCities());
+        modelAttributes.put("itemCity", city);
+        modelAttributes.put("itemStreet", street);
+        modelAttributes.put("itemHouse", house);
+
+        List<Attribute> attributes = categoryAttributeRepository.findById_CategoryId(item.getCategory().getCategoryId()).stream()
+                .map(catAttr -> attributeRepository.findById(catAttr.getId().getAttributeId()).orElse(null))
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
+
+        Map<Long, List<String>> enumValuesMap = new HashMap<>();
+        for (Attribute attribute : attributes) {
+            if (attribute.getType() == AttributeType.ENUM) {
+                List<String> values = attributeEnumValueRepository.findById_AttributeId(attribute.getAttributeId())
+                        .stream()
+                        .map(value -> value.getId().getValue())
+                        .collect(Collectors.toList());
+                enumValuesMap.put(attribute.getAttributeId(), values);
+            }
+        }
+
+        List<ItemAttribute> itemAttributes = itemAttributeRepository.findById_Item(item.getItemId());
+        Map<String, String> attributeMap = new HashMap<>();
+        for (ItemAttribute itemAttribute : itemAttributes) {
+            Attribute attribute = attributeRepository.findById(itemAttribute.getId().getAttribute()).orElseThrow();
+            attributeMap.put(attribute.getName(), itemAttribute.getValue());
+        }
+
+        List<Map<String, Object>> photoData = itemPhotoLinkRepository.findByItem(item)
+                .stream()
+                .map(link -> {
+                    Map<String, Object> photoInfo = new HashMap<>();
+                    photoInfo.put("photoId", link.getId().getPhotoId());
+                    photoInfo.put("url", normalizePhotoUrl(link.getPhotoLink().getUrl()));
+                    return photoInfo;
+                })
+                .collect(Collectors.toList());
+
+        modelAttributes.put("attributes", attributeMap);
+        modelAttributes.put("item", item);
+        modelAttributes.put("categoryAttributes", attributes);
+        modelAttributes.put("enumValuesMap", enumValuesMap);
+        modelAttributes.put("categories", categoryRepository.findAll());
+        modelAttributes.put("category", item.getCategory());
+        modelAttributes.put("colors", colorRepository.findAll());
+        modelAttributes.put("materials", materialRepository.findAll());
+        modelAttributes.put("makers", makerRepository.findAll());
+        modelAttributes.put("models", modelRepository.findAll());
+        modelAttributes.put("selectedMakerId", item.getMaker().getMakerId());
+        modelAttributes.put("photos", photoData);
+
+        return modelAttributes;
+    }
+
+    @Transactional
+    public String updateItem(Item updatedItem, Map<String, String> attributes, MultipartFile[] photos,
+                             Long colorId, Long materialId, Long makerId, Long modelId,
+                             List<Long> photosToDelete, String city, String street, String house) {
+        Item item = itemRepository.findById(updatedItem.getItemId())
+                .orElseThrow(() -> new IllegalArgumentException("Вещь с ID " + updatedItem.getItemId() + " не найдена"));
+
+        // Обновление основных полей вещи
+        item.setName(updatedItem.getName());
+        item.setDescription(updatedItem.getDescription());
+        item.setAddress(String.format("%s, %s, %s", city, street, house));
+        item.setWeight(updatedItem.getWeight());
+        item.setReleaseYear(updatedItem.getReleaseYear());
+
+        // Валидация и обновление связанных сущностей
+        if (colorId == null || colorRepository.findById(colorId).isEmpty()) {
+            throw new IllegalArgumentException("Неверный ID цвета: " + colorId);
+        }
+        if (materialId == null || materialRepository.findById(materialId).isEmpty()) {
+            throw new IllegalArgumentException("Неверный ID материала: " + materialId);
+        }
+        if (makerId == null || makerRepository.findById(makerId).isEmpty()) {
+            throw new IllegalArgumentException("Неверный ID производителя: " + makerId);
+        }
+        if (modelId == null || modelRepository.findById(modelId).isEmpty()) {
+            throw new IllegalArgumentException("Неверный ID модели: " + modelId);
+        }
+
+        item.setColor(colorRepository.findById(colorId).get());
+        item.setMaterial(materialRepository.findById(materialId).get());
+        item.setMaker(makerRepository.findById(makerId).get());
+        item.setModel(modelRepository.findById(modelId).get());
+        itemRepository.save(item);
+
+        // Обновление атрибутов
+        for (Map.Entry<String, String> entry : attributes.entrySet()) {
+            String attributeName = entry.getKey();
+            String value = entry.getValue();
+            Attribute attribute = attributeRepository.findByName(attributeName);
+            if (attribute == null) continue;
+
+            ItemAttributeId itemAttributeId = new ItemAttributeId(item.getItemId(), attribute.getAttributeId());
+            ItemAttribute itemAttribute = itemAttributeRepository.findById(itemAttributeId)
+                    .orElse(new ItemAttribute(itemAttributeId, value));
+            itemAttribute.setValue(value);
+            itemAttributeRepository.save(itemAttribute);
+        }
+
+        // Обработка фотографий для удаления
+        if (photosToDelete != null && !photosToDelete.isEmpty()) {
+            for (Long photoId : photosToDelete) {
+                ItemPhotoLinkId linkId = new ItemPhotoLinkId(item.getItemId(), photoId);
+                ItemPhotoLink itemPhotoLink = itemPhotoLinkRepository.findById(linkId)
+                        .orElseThrow(() -> new IllegalArgumentException("Фото с ID " + photoId + " не найдено для вещи " + item.getItemId()));
+
+                PhotoLink photoLink = itemPhotoLink.getPhotoLink();
+                String url = photoLink.getUrl();
+
+                // Удаление файла
+                if (url.startsWith("http")) {
+                    // S3
+                    String key = url.substring(url.indexOf("items/"));
+                    s3Service.deleteFile(key);
+                } else if (url.startsWith("items/")) {
+                    // Local
+                    String filePath = "C:\\Java Projects\\ItemSharing\\src\\main\\resources\\static\\images\\" + url;
+                    try {
+                        Files.deleteIfExists(Paths.get(filePath));
+                    } catch (IOException e) {
+                        throw new RuntimeException("Не удалось удалить локальный файл: " + filePath, e);
+                    }
+                }
+
+                // Удаление записей из БД
+                itemPhotoLinkRepository.deleteById(linkId);
+                List<ItemPhotoLink> remainingLinks = itemPhotoLinkRepository.findByPhotoLink(photoLink);
+                if (remainingLinks.isEmpty()) {
+                    photoLinkRepository.delete(photoLink);
+                }
+            }
+        }
+
+        // Обработка новых фотографий
+        if (photos != null && photos.length > 0 && !photos[0].isEmpty()) {
+            for (MultipartFile photo : photos) {
+                if (photo.isEmpty()) continue;
+                String originalFilename = photo.getOriginalFilename() != null ? photo.getOriginalFilename() : "photo_" + System.currentTimeMillis() + ".jpg";
+                String uniqueFileName = generateUniqueFileName(originalFilename);
+                String s3Url = s3Service.uploadFile(uniqueFileName, photo);
+                PhotoLink photoLink = new PhotoLink();
+                photoLink.setUrl(s3Url);
+                photoLinkRepository.save(photoLink);
+
+                ItemPhotoLinkId itemPhotoLinkId = new ItemPhotoLinkId(item.getItemId(), photoLink.getPhotoId());
+                ItemPhotoLink itemPhotoLink = new ItemPhotoLink(itemPhotoLinkId, item, photoLink);
+                itemPhotoLinkRepository.save(itemPhotoLink);
+            }
+        }
+
+        // Реиндексация вещи
+        itemIndexingService.indexItemAsync(item);
+
+        return "success:" + item.getItemId();
+    }
+
+    // Остальные методы без изменений
     public List<Category> getAllCategories() {
         return categoryRepository.findAll();
     }
@@ -209,7 +395,6 @@ public class ItemService {
                     startDateFor = startDateFor.plusDays(1);
                 }
             }
-
         }
 
         for (LocalDate date = startDate; !date.isAfter(endDate); date = date.plusDays(1)) {
@@ -314,160 +499,6 @@ public class ItemService {
         itemIndexingService.indexItemAsync(newItem);
 
         return "success:" + newItem.getItemId();
-    }
-
-    public Map<String, Object> getEditItemFormData(String itemId) {
-        Item item = itemRepository.findById(itemId).orElseThrow();
-        Map<String, Object> modelAttributes = new HashMap<>();
-
-        List<Attribute> attributes = categoryAttributeRepository.findById_CategoryId(item.getCategory().getCategoryId()).stream()
-                .map(catAttr -> attributeRepository.findById(catAttr.getId().getAttributeId()).orElse(null))
-                .filter(Objects::nonNull)
-                .collect(Collectors.toList());
-
-        Map<Long, List<String>> enumValuesMap = new HashMap<>();
-        for (Attribute attribute : attributes) {
-            if (attribute.getType() == AttributeType.ENUM) {
-                List<String> values = attributeEnumValueRepository.findById_AttributeId(attribute.getAttributeId())
-                        .stream()
-                        .map(value -> value.getId().getValue())
-                        .collect(Collectors.toList());
-                enumValuesMap.put(attribute.getAttributeId(), values);
-            }
-        }
-
-        List<ItemAttribute> itemAttributes = itemAttributeRepository.findById_Item(item.getItemId());
-        Map<String, String> attributeMap = new HashMap<>();
-        for (ItemAttribute itemAttribute : itemAttributes) {
-            Attribute attribute = attributeRepository.findById(itemAttribute.getId().getAttribute()).orElseThrow();
-            attributeMap.put(attribute.getName(), itemAttribute.getValue());
-        }
-
-        List<Map<String, Object>> photoData = itemPhotoLinkRepository.findByItem(item)
-                .stream()
-                .map(link -> {
-                    Map<String, Object> photoInfo = new HashMap<>();
-                    photoInfo.put("photoId", link.getId().getPhotoId());
-                    photoInfo.put("url", normalizePhotoUrl(link.getPhotoLink().getUrl()));
-                    return photoInfo;
-                })
-                .collect(Collectors.toList());
-
-        modelAttributes.put("attributes", attributeMap);
-        modelAttributes.put("item", item);
-        modelAttributes.put("categoryAttributes", attributes);
-        modelAttributes.put("enumValuesMap", enumValuesMap);
-        modelAttributes.put("categories", categoryRepository.findAll());
-        modelAttributes.put("category", item.getCategory());
-        modelAttributes.put("colors", colorRepository.findAll());
-        modelAttributes.put("materials", materialRepository.findAll());
-        modelAttributes.put("makers", makerRepository.findAll());
-        modelAttributes.put("models", modelRepository.findAll());
-        modelAttributes.put("selectedMakerId", item.getMaker().getMakerId());
-        modelAttributes.put("photos", photoData);
-
-        return modelAttributes;
-    }
-
-    @Transactional
-    public String updateItem(Item updatedItem, Map<String, String> attributes, MultipartFile[] photos,
-                             Long colorId, Long materialId, Long makerId, Long modelId, List<Long> photosToDelete) {
-        Item item = itemRepository.findById(updatedItem.getItemId())
-                .orElseThrow(() -> new IllegalArgumentException("Вещь с ID " + updatedItem.getItemId() + " не найдена"));
-
-        // Обновление основных полей вещи
-        item.setName(updatedItem.getName());
-        item.setDescription(updatedItem.getDescription());
-        item.setAddress(updatedItem.getAddress());
-        item.setWeight(updatedItem.getWeight());
-        item.setReleaseYear(updatedItem.getReleaseYear());
-
-        // Валидация и обновление связанных сущностей
-        if (colorId == null || colorRepository.findById(colorId).isEmpty()) {
-            throw new IllegalArgumentException("Неверный ID цвета: " + colorId);
-        }
-        if (materialId == null || materialRepository.findById(materialId).isEmpty()) {
-            throw new IllegalArgumentException("Неверный ID материала: " + materialId);
-        }
-        if (makerId == null || makerRepository.findById(makerId).isEmpty()) {
-            throw new IllegalArgumentException("Неверный ID производителя: " + makerId);
-        }
-        if (modelId == null || modelRepository.findById(modelId).isEmpty()) {
-            throw new IllegalArgumentException("Неверный ID модели: " + modelId);
-        }
-
-        item.setColor(colorRepository.findById(colorId).get());
-        item.setMaterial(materialRepository.findById(materialId).get());
-        item.setMaker(makerRepository.findById(makerId).get());
-        item.setModel(modelRepository.findById(modelId).get());
-        itemRepository.save(item);
-
-        // Обновление атрибутов
-        for (Map.Entry<String, String> entry : attributes.entrySet()) {
-            String attributeName = entry.getKey();
-            String value = entry.getValue();
-            Attribute attribute = attributeRepository.findByName(attributeName);
-            if (attribute == null) continue;
-
-            ItemAttributeId itemAttributeId = new ItemAttributeId(item.getItemId(), attribute.getAttributeId());
-            ItemAttribute itemAttribute = itemAttributeRepository.findById(itemAttributeId)
-                    .orElse(new ItemAttribute(itemAttributeId, value));
-            itemAttribute.setValue(value);
-            itemAttributeRepository.save(itemAttribute);
-        }
-
-        // Обработка фотографий для удаления
-        if (photosToDelete != null && !photosToDelete.isEmpty()) {
-            for (Long photoId : photosToDelete) {
-                ItemPhotoLinkId linkId = new ItemPhotoLinkId(item.getItemId(), photoId);
-                ItemPhotoLink itemPhotoLink = itemPhotoLinkRepository.findById(linkId)
-                        .orElseThrow(() -> new IllegalArgumentException("Фото с ID " + photoId + " не найдено для вещи " + item.getItemId()));
-
-                PhotoLink photoLink = itemPhotoLink.getPhotoLink();
-                String url = photoLink.getUrl();
-
-                // Удаление файла
-                if (url.startsWith("http")) {
-                    // S3
-                    String key = url.substring(url.indexOf("items/"));
-                    s3Service.deleteFile(key);
-                } else if (url.startsWith("items/")) {
-                    // Local
-                    String filePath = "C:\\Java Projects\\ItemSharing\\src\\main\\resources\\static\\images\\" + url;
-                    try {
-                        Files.deleteIfExists(Paths.get(filePath));
-                    } catch (IOException e) {
-                        throw new RuntimeException("Не удалось удалить локальный файл: " + filePath, e);
-                    }
-                }
-
-                // Удаление записей из БД
-                itemPhotoLinkRepository.deleteById(linkId);
-                List<ItemPhotoLink> remainingLinks = itemPhotoLinkRepository.findByPhotoLink(photoLink);
-                if (remainingLinks.isEmpty()) {
-                    photoLinkRepository.delete(photoLink);
-                }
-            }
-        }
-
-        // Обработка новых фотографий
-        if (photos != null && photos.length > 0 && !photos[0].isEmpty()) {
-            for (MultipartFile photo : photos) {
-                if (photo.isEmpty()) continue;
-                String originalFilename = photo.getOriginalFilename() != null ? photo.getOriginalFilename() : "photo_" + System.currentTimeMillis() + ".jpg";
-                String uniqueFileName = generateUniqueFileName(originalFilename);
-                String s3Url = s3Service.uploadFile(uniqueFileName, photo);
-                PhotoLink photoLink = new PhotoLink();
-                photoLink.setUrl(s3Url);
-                photoLinkRepository.save(photoLink);
-
-                ItemPhotoLinkId itemPhotoLinkId = new ItemPhotoLinkId(item.getItemId(), photoLink.getPhotoId());
-                ItemPhotoLink itemPhotoLink = new ItemPhotoLink(itemPhotoLinkId, item, photoLink);
-                itemPhotoLinkRepository.save(itemPhotoLink);
-            }
-        }
-
-        return "success:" + item.getItemId();
     }
 
     @Transactional
