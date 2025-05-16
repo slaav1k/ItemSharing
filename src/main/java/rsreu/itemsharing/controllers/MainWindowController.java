@@ -1,14 +1,17 @@
 package rsreu.itemsharing.controllers;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import rsreu.itemsharing.entities.*;
+import rsreu.itemsharing.security.CustomUserDetails;
 import rsreu.itemsharing.infrastructure.ItemDocument;
 import rsreu.itemsharing.infrastructure.ItemSearchService;
+import rsreu.itemsharing.services.CityService;
 import rsreu.itemsharing.repositories.*;
 
 import java.util.*;
@@ -53,12 +56,15 @@ public class MainWindowController {
     @Autowired
     private ItemSearchService itemSearchService;
 
+    @Autowired
+    private CityService cityService;
+
     @GetMapping("/search")
     @ResponseBody
-    public List<ItemDocument> search(@RequestParam String q) {
-        System.out.println("Search query received: " + q);
-        List<ItemDocument> results = itemSearchService.search(q);
-        System.out.println("Search results: " + results);
+    public List<ItemDocument> search(@RequestParam String q, @RequestParam(required = false) String city) {
+        System.out.println("Search query received: q=" + q + ", city=" + (city == null ? "null" : "'" + city + "'"));
+        List<ItemDocument> results = itemSearchService.search(q, city);
+        System.out.println("Search results: " + results.size() + " items");
         return results;
     }
 
@@ -66,16 +72,37 @@ public class MainWindowController {
     public String catalog(@RequestParam(required = false) Long category,
                           @RequestParam(required = false) String search,
                           @RequestParam(required = false) String searchIds,
+                          @RequestParam(required = false) String city,
                           @RequestParam(required = false) Map<String, String> filters,
                           Model model) {
-        System.out.println("Catalog params - category: " + category + ", search: " + search + ", searchIds: " + searchIds);
+        System.out.println("Catalog params - category: " + category + ", search: " + search + ", searchIds: " + searchIds + ", city: " + (city == null ? "null" : "'" + city + "'"));
 
         if (filters != null) {
             filters.remove("category");
             filters.remove("continue");
             filters.remove("search");
             filters.remove("searchIds");
+            filters.remove("city");
         }
+
+        // Извлекаем город текущего пользователя
+        String userCity = null;
+        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        if (principal instanceof CustomUserDetails) {
+            CustomUserDetails userDetails = (CustomUserDetails) principal;
+            User user = userDetails.getUser();
+            if (user.getAddress() != null && !user.getAddress().isEmpty()) {
+                String[] addressParts = user.getAddress().split(", ");
+                if (addressParts.length > 0) {
+                    userCity = addressParts[0].replace("г. ", "").trim();
+                }
+            }
+        }
+        System.out.println("User city: " + userCity);
+
+        // Устанавливаем город: используем city из параметров, если он не пустой, иначе null
+        String selectedCity = (city != null && !city.trim().isEmpty()) ? city.trim() : null;
+        System.out.println("Selected city: " + selectedCity);
 
         // Получаем список ID из поиска
         List<String> searchItemIds = (searchIds != null && !searchIds.trim().isEmpty())
@@ -87,42 +114,51 @@ public class MainWindowController {
 
         // 1. Получаем начальный список элементов
         if (searchItemIds != null && !searchItemIds.isEmpty()) {
-            // Если есть результаты поиска, начинаем с них
             items = itemRepository.findAllById(searchItemIds);
-            System.out.println("Items fetched by search IDs: " + items);
+            System.out.println("Items fetched by search IDs: " + items.size());
         } else if (search != null && !search.trim().isEmpty()) {
-            // Если есть поисковый запрос, но результатов нет, возвращаем пустой список
             items = Collections.emptyList();
             System.out.println("No search results for query: " + search);
         } else {
-            // Если поиска нет, берем все элементы или по категории
             if (category != null) {
                 Category categoryEntity = categoryRepository.findById(category).orElse(null);
                 if (categoryEntity != null) {
                     items = itemRepository.findByCategory(categoryEntity);
-                    System.out.println("Items fetched by category: " + items);
+                    System.out.println("Items fetched by category: " + items.size());
                 } else {
                     items = itemRepository.findAll();
-                    System.out.println("All items fetched (no category): " + items);
+                    System.out.println("All items fetched (no category): " + items.size());
                 }
             } else {
                 items = itemRepository.findAll();
-                System.out.println("All items fetched (no search, no category): " + items);
+                System.out.println("All items fetched (no search, no category): " + items.size());
             }
         }
 
-        // 2. Фильтрация по категории, если выбрана
+        // 2. Фильтрация по городу
+        if (selectedCity != null && !items.isEmpty()) {
+            final String cityFilter = selectedCity;
+            items = items.stream()
+                    .filter(item -> item.getAddress() != null && item.getAddress().contains(cityFilter))
+                    .collect(Collectors.toList());
+            System.out.println("Items after city filter: " + items.size());
+            System.out.println("Addresses after filter: " + items.stream()
+                    .map(Item::getAddress)
+                    .collect(Collectors.joining(", ")));
+        }
+
+        // 3. Фильтрация по категории, если выбрана
         if (category != null && searchItemIds != null && !searchItemIds.isEmpty()) {
             Category categoryEntity = categoryRepository.findById(category).orElse(null);
             if (categoryEntity != null) {
                 items = items.stream()
                         .filter(item -> item.getCategory().getCategoryId().equals(category))
                         .collect(Collectors.toList());
-                System.out.println("Items after category filter: " + items);
+                System.out.println("Items after category filter: " + items.size());
             }
         }
 
-        // 3. Загружаем атрибуты категории
+        // 4. Загружаем атрибуты категории
         List<Attribute> attributes = new ArrayList<>();
         Map<Long, List<String>> enumValuesMap = new HashMap<>();
 
@@ -150,7 +186,7 @@ public class MainWindowController {
         List<Maker> makers = makerRepository.findAll();
         List<rsreu.itemsharing.entities.Model> models = modelRepository.findAll();
 
-        // 4. Применяем фильтры
+        // 5. Применяем фильтры
         boolean allFiltersNull = true;
         if (filters != null) {
             for (Map.Entry<String, String> filter : filters.entrySet()) {
@@ -230,10 +266,10 @@ public class MainWindowController {
             }
 
             items = filteredItems;
-            System.out.println("Items after attribute filters: " + items);
+            System.out.println("Items after attribute filters: " + items.size());
         }
 
-        // 5. Загружаем фото товаров
+        // 6. Загружаем фото товаров
         Map<String, List<String>> photoUrlsMap = new HashMap<>();
         for (Item item : items) {
             List<ItemPhotoLink> itemPhotoLinks = itemPhotoLinkRepository.findByItem(item);
@@ -246,7 +282,7 @@ public class MainWindowController {
             photoUrlsMap.put(item.getItemId(), photoUrls);
         }
 
-        // 6. Передаём данные в шаблон
+        // 7. Передаём данные в шаблон
         model.addAttribute("items", items);
         model.addAttribute("photoUrlsMap", photoUrlsMap);
         model.addAttribute("categories", categoryRepository.findAll());
@@ -260,6 +296,9 @@ public class MainWindowController {
         model.addAttribute("models", models);
         model.addAttribute("search", search);
         model.addAttribute("searchIds", searchIds);
+        model.addAttribute("cities", cityService.getCities());
+        model.addAttribute("city", selectedCity);
+        model.addAttribute("userCity", userCity);
 
         return "catalog";
     }

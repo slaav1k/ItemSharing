@@ -104,6 +104,13 @@
         .clear-btn {
             right: -5px;
         }
+        .city-filter-form {
+            margin-left: 10px;
+            margin-right: 10px;
+        }
+        .city-filter-form select {
+            width: 200px;
+        }
     </style>
 </head>
 <body>
@@ -121,6 +128,7 @@
                 </select>
                 <input type="hidden" name="search" th:value="${search}" />
                 <input type="hidden" name="searchIds" th:value="${searchIds}" />
+                <input type="hidden" name="city" th:value="${city}" />
                 <input th:each="filter : ${filters}" th:name="${filter.key}" th:value="${filter.value}" type="hidden" />
             </div>
         </form>
@@ -131,6 +139,7 @@
                     <input type="text" name="search" class="form-control search-input" placeholder="Поиск вещей..." th:value="${search}">
                     <input type="hidden" name="searchIds" id="searchIds" th:value="${searchIds}">
                     <input type="hidden" name="category" th:value="${category}" />
+                    <input type="hidden" name="city" id="searchCity" th:value="${city}" />
                     <input th:each="filter : ${filters}" th:name="${filter.key}" th:value="${filter.value}" type="hidden" />
                     <span class="input-group-text">
                         <button type="button" class="btn search-btn p-0" onclick="performSearch(event)">
@@ -147,6 +156,18 @@
                 </div>
             </form>
         </div>
+
+        <form class="city-filter-form" method="get" th:action="@{/}">
+            <select name="city" id="cityFilter" class="form-control" onchange="this.form.submit()">
+                <option value="" th:selected="${city == null or city == ''}">Все города</option>
+                <option th:each="cityOption : ${cities}" th:value="${cityOption}" th:text="${cityOption}"
+                        th:selected="${city != null and city != '' and cityOption == city}"></option>
+            </select>
+            <input type="hidden" name="category" th:value="${category}" />
+            <input type="hidden" name="search" th:value="${search}" />
+            <input type="hidden" name="searchIds" th:value="${searchIds}" />
+            <input th:each="filter : ${filters}" th:name="${filter.key}" th:value="${filter.value}" type="hidden" />
+        </form>
 
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
@@ -174,10 +195,17 @@
     <div class="row mt-4">
         <div class="col-12 main-content">
             <div class="content-wrapper">
-                <div th:if="${items.isEmpty() and search != null and search != ''}">
-                    <p>Ничего не найдено по запросу "<span th:text="${search}"></span>".</p>
+                <div th:if="${items.isEmpty() and ((search != null and search != '') or (city != null and city != ''))}">
+                    <p>
+                        Ничего не найдено
+                        <span th:if="${search != null and search != ''}">по запросу "<span th:text="${search}"></span>"</span>
+                        <span th:if="${city != null and city != ''}">
+                            <span th:if="${search != null and search != ''}">и</span>
+                            в городе "<span th:text="${city}"></span>"
+                        </span>.
+                    </p>
                 </div>
-                <div th:unless="${items.isEmpty() and search != null and search != ''}">
+                <div th:unless="${items.isEmpty() and ((search != null and search != '') or (city != null and city != ''))}">
                     <div class="row">
                         <div class="col-md-3" th:each="i : ${items}">
                             <a th:href="@{'/item/' + ${i.itemId}}" class="text-decoration-none">
@@ -209,6 +237,7 @@
         <input type="hidden" name="category" th:value="${category}" />
         <input type="hidden" name="search" th:value="${search}" />
         <input type="hidden" name="searchIds" th:value="${searchIds}" />
+        <input type="hidden" name="city" th:value="${city}" />
         <div class="mt-2">
             <label for="color">Цвет</label>
             <select id="color" name="color" class="form-control">
@@ -271,12 +300,12 @@
             </div>
         </div>
         <button type="submit" class="btn btn-primary mt-2">Применить фильтры</button>
-        <a th:href="@{/?category={category}&search={search}&searchIds={searchIds}(category=${category},search=${search},searchIds=${searchIds})}" class="btn btn-secondary mt-2">Сбросить фильтры</a>
+        <a th:href="@{/?category={category}&search={search}&searchIds={searchIds}&city={city}(category=${category},search=${search},searchIds=${searchIds},city=${city})}" class="btn btn-secondary mt-2">Сбросить фильтры</a>
     </form>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.10.2/dist/umd/popper.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap/5.0.0-beta3/dist/js/bootstrap.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/js/bootstrap.min.js"></script>
 <script th:inline="javascript">
     const allModels = /*[[${models}]]*/ [];
 
@@ -303,15 +332,19 @@
         const searchQuery = document.querySelector('.search-input').value;
         const form = document.getElementById('searchForm');
         const searchIdsInput = document.getElementById('searchIds');
+        const cityFilter = document.getElementById('cityFilter').value;
 
         if (!searchQuery.trim()) {
             clearSearch();
             return;
         }
 
-        console.log('Performing search for query:', searchQuery);
+        console.log('Performing search for query:', searchQuery, 'with city:', cityFilter);
 
-        fetch(`/search?q=${encodeURIComponent(searchQuery)}`)
+        // Обновляем скрытое поле city в форме
+        document.getElementById('searchCity').value = cityFilter;
+
+        fetch(`/search?q=${encodeURIComponent(searchQuery)}&city=${encodeURIComponent(cityFilter)}`)
             .then(response => {
                 if (!response.ok) {
                     throw new Error('Network response was not ok: ' + response.statusText);
@@ -347,6 +380,7 @@
         if (searchIdsInput) {
             searchIdsInput.value = '';
         }
+        document.getElementById('searchCity').value = '';
         document.querySelector('.clear-btn').style.display = 'none';
         form.submit();
     }

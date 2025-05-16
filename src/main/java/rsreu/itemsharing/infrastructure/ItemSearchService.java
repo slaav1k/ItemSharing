@@ -58,14 +58,33 @@ public class ItemSearchService {
         repository.save(doc);
     }
 
-    public List<ItemDocument> search(String query) {
+    public List<ItemDocument> search(String query, String city) {
         if (query == null || query.trim().isEmpty()) {
             logger.warn("Empty or null search query provided, returning empty list");
             return Collections.emptyList();
         }
-        logger.info("Searching items with query: {}", query);
-        List<ItemDocument> results = repository.searchByMultipleFields(query);
-        logger.info("Found {} items", results.size());
+
+        logger.info("Searching items with query: {}, city: {}", query, city);
+
+        // Нормализация города
+        String normalizedCity = city != null ? city.trim().toLowerCase() : null;
+
+        // Проверка элементов по городу (для отладки)
+        if (normalizedCity != null && !normalizedCity.isEmpty()) {
+            List<ItemDocument> cityItems = repository.findByCity(normalizedCity);
+            logger.info("Found {} items in city: {}", cityItems.size(), normalizedCity);
+        }
+
+        // Если город не указан, выполняем обычный поиск
+        if (normalizedCity == null || normalizedCity.isEmpty()) {
+            List<ItemDocument> results = repository.searchByMultipleFields(query);
+            logger.info("Found {} items without city filter", results.size());
+            return results;
+        }
+
+        // Выполняем поиск с фильтром по городу
+        List<ItemDocument> results = repository.searchByQueryAndCity(query, normalizedCity);
+        logger.info("Found {} items with query: {} and city: {}", results.size(), query, normalizedCity);
         return results;
     }
 }
