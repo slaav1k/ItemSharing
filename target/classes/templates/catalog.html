@@ -174,23 +174,28 @@
     <div class="row mt-4">
         <div class="col-12 main-content">
             <div class="content-wrapper">
-                <div class="row">
-                    <div class="col-md-3" th:each="i : ${items}">
-                        <a th:href="@{'/item/' + ${i.itemId}}" class="text-decoration-none">
-                            <div class="item-card">
-                                <img th:src="@{${photoUrlsMap[i.itemId][0]}}" alt="Photo">
-                                <div class="item-title">
-                                    <span th:text="${#strings.length(i.name) > 20 ? #strings.substring(i.name, 0, 20) + '...' : i.name}">Название</span>
+                <div th:if="${items.isEmpty() and search != null and search != ''}">
+                    <p>Ничего не найдено по запросу "<span th:text="${search}"></span>".</p>
+                </div>
+                <div th:unless="${items.isEmpty() and search != null and search != ''}">
+                    <div class="row">
+                        <div class="col-md-3" th:each="i : ${items}">
+                            <a th:href="@{'/item/' + ${i.itemId}}" class="text-decoration-none">
+                                <div class="item-card">
+                                    <img th:src="@{${photoUrlsMap[i.itemId][0]}}" alt="Photo">
+                                    <div class="item-title">
+                                        <span th:text="${#strings.length(i.name) > 20 ? #strings.substring(i.name, 0, 20) + '...' : i.name}">Название</span>
+                                    </div>
+                                    <div class="item-address">
+                                        <span th:text="${#strings.length(i.address) > 25 ? #strings.substring(i.address, 0, 25) + '...' : i.address}">Адрес</span>
+                                    </div>
+                                    <div th:classappend="${i.available} ? 'item-availability' : 'item-unavailable'"
+                                         th:text="${i.available} ? 'Доступно' : 'Недоступно'">
+                                        Доступно
+                                    </div>
                                 </div>
-                                <div class="item-address">
-                                    <span th:text="${#strings.length(i.address) > 25 ? #strings.substring(i.address, 0, 25) + '...' : i.address}">Адрес</span>
-                                </div>
-                                <div th:classappend="${i.available} ? 'item-availability' : 'item-unavailable'"
-                                     th:text="${i.available} ? 'Доступно' : 'Недоступно'">
-                                    Доступно
-                                </div>
-                            </div>
-                        </a>
+                            </a>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -271,7 +276,7 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.10.2/dist/umd/popper.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/js/bootstrap.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap/5.0.0-beta3/dist/js/bootstrap.min.js"></script>
 <script th:inline="javascript">
     const allModels = /*[[${models}]]*/ [];
 

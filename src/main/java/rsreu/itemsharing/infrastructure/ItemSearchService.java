@@ -1,5 +1,7 @@
 package rsreu.itemsharing.infrastructure;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import rsreu.itemsharing.entities.Attribute;
@@ -10,12 +12,14 @@ import rsreu.itemsharing.repositories.AttributeRepository;
 import rsreu.itemsharing.repositories.ItemAttributeRepository;
 import rsreu.itemsharing.repositories.ItemSearchRepository;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 @Service
 public class ItemSearchService {
+    private static final Logger logger = LoggerFactory.getLogger(ItemSearchService.class);
     private final ItemSearchRepository repository;
     private final ItemAttributeRepository itemAttributeRepository;
     private final AttributeRepository attributeRepository;
@@ -54,7 +58,14 @@ public class ItemSearchService {
         repository.save(doc);
     }
 
-    public List<ItemDocument> search(String keyword) {
-        return repository.searchByMultipleFields(keyword);
+    public List<ItemDocument> search(String query) {
+        if (query == null || query.trim().isEmpty()) {
+            logger.warn("Empty or null search query provided, returning empty list");
+            return Collections.emptyList();
+        }
+        logger.info("Searching items with query: {}", query);
+        List<ItemDocument> results = repository.searchByMultipleFields(query);
+        logger.info("Found {} items", results.size());
+        return results;
     }
 }

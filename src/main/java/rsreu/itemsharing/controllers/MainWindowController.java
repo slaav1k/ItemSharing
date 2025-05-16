@@ -90,6 +90,10 @@ public class MainWindowController {
             // Если есть результаты поиска, начинаем с них
             items = itemRepository.findAllById(searchItemIds);
             System.out.println("Items fetched by search IDs: " + items);
+        } else if (search != null && !search.trim().isEmpty()) {
+            // Если есть поисковый запрос, но результатов нет, возвращаем пустой список
+            items = Collections.emptyList();
+            System.out.println("No search results for query: " + search);
         } else {
             // Если поиска нет, берем все элементы или по категории
             if (category != null) {
@@ -147,7 +151,6 @@ public class MainWindowController {
         List<rsreu.itemsharing.entities.Model> models = modelRepository.findAll();
 
         // 4. Применяем фильтры
-
         boolean allFiltersNull = true;
         if (filters != null) {
             for (Map.Entry<String, String> filter : filters.entrySet()) {
