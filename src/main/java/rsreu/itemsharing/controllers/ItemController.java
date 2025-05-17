@@ -30,6 +30,7 @@ public class ItemController {
     @Autowired
     private CityService cityService;
 
+
     @PostMapping("/updateItem")
     public String updateItem(@ModelAttribute Item updatedItem,
                              @RequestParam Map<String, String> attributes,
@@ -59,7 +60,6 @@ public class ItemController {
         return "redirect:/item/" + result.split(":")[1];
     }
 
-    // Остальные методы без изменений
     @GetMapping("/item/{itemId}")
     public String getItem(@PathVariable("itemId") String itemId, Model model) {
         Map<String, Object> attributes = itemService.getItemDetails(itemId);
@@ -88,8 +88,16 @@ public class ItemController {
     public String createRequest(@PathVariable("itemId") String itemId,
                                 @RequestParam("startDate") LocalDate startDate,
                                 @RequestParam("endDate") LocalDate endDate,
+                                @RequestParam(value = "confirmed", defaultValue = "false") boolean confirmed,
                                 Model model) {
         CustomUserDetails userDetails = (CustomUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        if (!confirmed) {
+            // If not confirmed, show the item details again with the dates pre-filled
+            model.addAllAttributes(itemService.getItemDetails(itemId));
+            model.addAttribute("startDate", startDate);
+            model.addAttribute("endDate", endDate);
+            return "itemCard";
+        }
         String result = itemService.createRequest(itemId, startDate, endDate, userDetails);
         if (result.startsWith("error")) {
             model.addAttribute("error", result.substring(6));

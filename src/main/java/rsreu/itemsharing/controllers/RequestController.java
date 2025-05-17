@@ -64,8 +64,25 @@ public class RequestController {
     }
 
     @PostMapping("/requests/approve")
-    public String approveRequest(@RequestParam Long requestId) {
+    public String approveRequest(@RequestParam Long requestId,
+                                 @RequestParam(value = "confirmed", defaultValue = "false") boolean confirmed,
+                                 Model model) {
         Request request = requestRepository.findById(requestId).orElseThrow();
+        CustomUserDetails userDetails = (CustomUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        User user = userDetails.getUser();
+
+        if (!confirmed) {
+            // Если не подтверждено, возвращаем страницу заявок
+            List<Request> outgoingRequests = requestRepository.findByHolder(user);
+            List<Request> incomingRequests = requestRepository.findById(requestId)
+                    .map(List::of)
+                    .orElse(List.of());
+            model.addAttribute("outgoingRequests", outgoingRequests);
+            model.addAttribute("incomingRequests", incomingRequests);
+            model.addAttribute("user", user);
+            return "requests";
+        }
+
         RequestStatus status = requestStatusRepository.findById(2L).orElseThrow();
         request.setStatus(status);
         requestRepository.save(request);

@@ -23,6 +23,7 @@
         .review-photo-thumbnail { width: 80px; height: 80px; object-fit: cover; cursor: pointer; border-radius: 5px; }
         .owner-circle { display: inline-flex; justify-content: center; align-items: center; width: 30px; height: 30px; border-radius: 50%; font-weight: bold; color: white; font-size: 16px; text-transform: uppercase; margin-left: 8px; }
         .owner-link { text-decoration: none; }
+        .contract-text { max-height: 400px; overflow-y: auto; padding: 15px; border: 1px solid #ddd; border-radius: 5px; }
     </style>
 </head>
 <body>
@@ -87,7 +88,7 @@
                 <button class="btn btn-info" data-bs-toggle="modal" data-bs-target="#contactModal">🤙💬</button>
             </p>
 
-            <!-- Модальное окно для контактов -->
+            <!-- Contact Modal -->
             <div class="modal fade" id="contactModal" tabindex="-1" aria-labelledby="contactModalLabel" aria-hidden="true">
                 <div class="modal-dialog">
                     <div class="modal-content">
@@ -113,6 +114,7 @@
             </p>
             <a href="javascript:void(0);" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#requestModal">Оформить</a>
 
+            <!-- Request Modal -->
             <div class="modal fade" id="requestModal" tabindex="-1" aria-labelledby="requestModalLabel" aria-hidden="true">
                 <div class="modal-dialog">
                     <div class="modal-content">
@@ -120,34 +122,90 @@
                             <h5 class="modal-title" id="requestModalLabel">Оформить заявку на бронирование</h5>
                             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
                         </div>
+                        <div class="modal-body">
+                            <div th:if="${error}" class="alert alert-danger" role="alert">
+                                <span th:text="${error}"></span>
+                            </div>
+                            <div class="mb-3">
+                                <label for="startDate" class="form-label">Начальная дата</label>
+                                <input type="date" id="startDate" name="startDate" class="form-control" required min="2025-03-01">
+                            </div>
+                            <div class="mb-3">
+                                <label for="endDate" class="form-label">Конечная дата</label>
+                                <input type="date" id="endDate" name="endDate" class="form-control" required min="2025-03-01">
+                            </div>
+                            <div class="alert alert-danger" id="dateError" style="display: none;">
+                                Вы выбрали уже забронированные даты. Пожалуйста, выберите другие.
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
+                            <button type="button" class="btn btn-primary" onclick="showContractModal()">Продолжить</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Contract Modal -->
+            <div class="modal fade" id="contractModal" tabindex="-1" aria-labelledby="contractModalLabel" aria-hidden="true">
+                <div class="modal-dialog modal-lg">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="contractModalLabel">Договор пользования</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
+                        </div>
                         <form action="#" th:action="@{'/item/' + ${item.itemId} + '/request'}" method="post">
                             <div class="modal-body">
-                                <div th:if="${error}" class="alert alert-danger" role="alert">
-                                    <span th:text="${error}"></span>
+                                <div class="contract-text">
+                                    <h4>Договор пользования</h4>
+                                    <p>Настоящий договор пользования (далее — «Договор») заключен между:</p>
+                                    <h5>Временный пользователь:</h5>
+                                    <p>
+                                        <strong>Имя:</strong> <span th:text="${#authentication.principal.user.fullName}">Имя арендатора</span><br>
+                                        <strong>Паспорт:</strong> <span th:text="${#authentication.principal.user.passportNum}">Паспорт</span><br>
+                                        <strong>Адрес:</strong> <span th:text="${#authentication.principal.user.address}">Адрес</span><br>
+                                        <strong>Телефон:</strong> <span th:text="${#authentication.principal.user.phone}">Телефон</span><br>
+                                        <strong>Email:</strong> <span th:text="${#authentication.principal.user.email}">Email</span>
+                                    </p>
+                                    <h5>Владелец вещи:</h5>
+                                    <p>
+                                        <strong>Имя:</strong> <span th:text="${item.owner.fullName}">Имя владельца</span><br>
+                                        <strong>Паспорт:</strong> <span th:text="${item.owner.passportNum}">Паспорт</span><br>
+                                        <strong>Адрес:</strong> <span th:text="${item.owner.address}">Адрес</span><br>
+                                        <strong>Телефон:</strong> <span th:text="${item.owner.phone}">Телефон</span><br>
+                                        <strong>Email:</strong> <span th:text="${item.owner.email}">Email</span>
+                                    </p>
+                                    <h5>Предмет договора:</h5>
+                                    <p>
+                                        <strong>Наименование:</strong> <span th:text="${item.name}">Название вещи</span><br>
+                                        <strong>Описание:</strong> <span th:text="${item.description}">Описание</span><br>
+                                        <strong>Адрес:</strong> <span th:text="${item.address}">Адрес</span>
+                                    </p>
+                                    <h5>Срок пользования:</h5>
+                                    <p>
+                                        <strong>Начальная дата:</strong> <span id="contractStartDate"></span><br>
+                                        <strong>Конечная дата:</strong> <span id="contractEndDate"></span>
+                                    </p>
+                                    <p>
+                                        Арендатор обязуется использовать предмет пользования в соответствии с его назначением и вернуть в надлежащем состоянии по истечении срока пользования.
+                                    </p>
                                 </div>
-                                <div class="mb-3">
-                                    <label for="startDate" class="form-label">Начальная дата</label>
-                                    <input type="date" id="startDate" name="startDate" class="form-control" required min="2025-03-01">
-                                </div>
-                                <div class="mb-3">
-                                    <label for="endDate" class="form-label">Конечная дата</label>
-                                    <input type="date" id="endDate" name="endDate" class="form-control" required min="2025-03-01">
-                                </div>
-                                <div class="alert alert-danger" id="dateError" style="display: none;">
-                                    Вы выбрали уже забронированные даты. Пожалуйста, выберите другие.
-                                </div>
+                                <input type="hidden" id="formStartDate" name="startDate">
+                                <input type="hidden" id="formEndDate" name="endDate">
+                                <input type="hidden" name="confirmed" value="true">
                             </div>
                             <div class="modal-footer">
-                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
-                                <button type="submit" class="btn btn-primary">Оформить заявку</button>
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отменить</button>
+                                <button type="submit" class="btn btn-primary">Подписать договор</button>
                             </div>
                         </form>
                     </div>
                 </div>
             </div>
 
-            <a href="#" class="btn btn-success " data-bs-toggle="modal" data-bs-target="#reviewModal">Оценить вещь</a>
+            <a href="#" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#reviewModal">Оценить вещь</a>
 
+            <!-- Review Modal -->
             <div class="modal fade" id="reviewModal" tabindex="-1" aria-labelledby="reviewModalLabel" aria-hidden="true">
                 <div class="modal-dialog">
                     <div class="modal-content">
@@ -233,7 +291,7 @@
                     <img id="reviewModalImage" src="" class="img-fluid" alt="Фото отзыва">
                 </div>
             </div>
-        </div>
+        </ personally>
     </div>
 </div>
 
@@ -245,6 +303,27 @@
             document.getElementById('reviewModalImage').setAttribute('src', imgUrl);
         });
     });
+
+    function showContractModal() {
+        const startDate = document.getElementById('startDate').value;
+        const endDate = document.getElementById('endDate').value;
+
+        if (!startDate || !endDate) {
+            document.getElementById('dateError').style.display = 'block';
+            return;
+        }
+
+        document.getElementById('contractStartDate').textContent = startDate;
+        document.getElementById('contractEndDate').textContent = endDate;
+        document.getElementById('formStartDate').value = startDate;
+        document.getElementById('formEndDate').value = endDate;
+
+        const requestModal = bootstrap.Modal.getInstance(document.getElementById('requestModal'));
+        requestModal.hide();
+
+        const contractModal = new bootstrap.Modal(document.getElementById('contractModal'));
+        contractModal.show();
+    }
 </script>
 <script th:inline="javascript">
     const bookedDates = /*[[${bookedDates}]]*/ [];
