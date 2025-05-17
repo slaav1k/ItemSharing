@@ -7,24 +7,22 @@ import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
-import rsreu.itemsharing.entities.*;
+import rsreu.itemsharing.entities.User;
 import rsreu.itemsharing.security.CustomUserDetails;
-import rsreu.itemsharing.services.ReportService;
 import rsreu.itemsharing.services.UserService;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.Map;
+import java.util.Optional;
 
 @Controller
 @RequestMapping("/user")
 public class UserController {
 
     private final UserService userService;
-    private final ReportService reportService;
 
-    public UserController(UserService userService, ReportService reportService) {
+    public UserController(UserService userService) {
         this.userService = userService;
-        this.reportService = reportService;
     }
 
     @GetMapping("/{passportNum}")
@@ -35,19 +33,9 @@ public class UserController {
         CustomUserDetails customUserDetails = (CustomUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         User currentUser = customUserDetails.getUser();
 
-        boolean isBlocked = userService.isBlocked(currentUser, user);
-        double averageScore = userService.calculateAverageScore(user);
-        List<Item> items = user.getItems();
-        Map<String, List<String>> photoUrlsMap = userService.buildPhotoUrlsMap(items);
-        List<Request> itemsInUse = userService.getItemsInUse(user);
+        Map<String, Object> profileData = userService.prepareUserProfileData(user, currentUser);
 
-        model.addAttribute("user", user);
-        model.addAttribute("items", items);
-        model.addAttribute("reviews", user.getReviewsReceived());
-        model.addAttribute("photoUrlsMap", photoUrlsMap);
-        model.addAttribute("averageScore", averageScore);
-        model.addAttribute("itemsInUse", itemsInUse);
-        model.addAttribute("isBlocked", isBlocked);
+        profileData.forEach(model::addAttribute);
         return "userProfile";
     }
 

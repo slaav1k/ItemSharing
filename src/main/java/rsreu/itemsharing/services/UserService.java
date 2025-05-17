@@ -129,4 +129,22 @@ public class UserService {
     public void generateBlacklistReport(User user, HttpServletRequest request, HttpServletResponse response) throws IOException {
         birt.generatePDF_aboutBlacklistByUser(user.getPassportNum(), response, request);
     }
+
+    public Map<String, Object> prepareUserProfileData(User user, User currentUser) {
+        Map<String, Object> data = new HashMap<>();
+        boolean isBlocked = isBlocked(currentUser, user);
+        double averageScore = calculateAverageScore(user);
+        List<Item> items = user != null ? user.getItems() : new ArrayList<>();
+        Map<String, List<String>> photoUrlsMap = buildPhotoUrlsMap(items);
+        List<Request> itemsInUse = getItemsInUse(user);
+
+        data.put("user", user);
+        data.put("items", items);
+        data.put("reviews", user != null ? user.getReviewsReceived() : new ArrayList<>());
+        data.put("photoUrlsMap", photoUrlsMap);
+        data.put("averageScore", averageScore);
+        data.put("itemsInUse", itemsInUse);
+        data.put("isBlocked", isBlocked);
+        return data;
+    }
 }

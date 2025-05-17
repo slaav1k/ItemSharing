@@ -9,57 +9,36 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import rsreu.itemsharing.entities.Request;
-import rsreu.itemsharing.entities.RequestStatus;
 import rsreu.itemsharing.entities.User;
 import rsreu.itemsharing.infrastructure.Birt;
-import rsreu.itemsharing.repositories.RequestRepository;
-import rsreu.itemsharing.repositories.RequestStatusRepository;
-import rsreu.itemsharing.repositories.UserRepository;
 import rsreu.itemsharing.security.CustomUserDetails;
-import rsreu.itemsharing.services.ReportService;
+import rsreu.itemsharing.services.RequestService;
 
 import java.security.Principal;
-import java.util.List;
 
 @Controller
 public class RequestController {
 
     @Autowired
+    private RequestService requestService;
+
+    @Autowired
     private Birt birt;
-
-    private final RequestRepository requestRepository;
-    private final UserRepository userRepository;
-    private final ReportService reportService;
-    private final RequestStatusRepository requestStatusRepository;
-
-    public RequestController(final RequestRepository requestRepository, final UserRepository userRepository, ReportService reportService, RequestStatusRepository requestStatusRepository) {
-        this.requestRepository = requestRepository;
-        this.userRepository = userRepository;
-        this.reportService = reportService;
-        this.requestStatusRepository = requestStatusRepository;
-    }
 
     @GetMapping("/requests")
     public String showRequests(Model model, Principal principal) {
         CustomUserDetails customUserDetails = (CustomUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         User user = customUserDetails.getUser();
 
-        List<Request> outgoingRequests = requestRepository.findByHolder(user);
-        List<Request> incomingRequests = requestRepository.findByItemOwner(user);
-
-        model.addAttribute("outgoingRequests", outgoingRequests);
-        model.addAttribute("incomingRequests", incomingRequests);
+        model.addAttribute("outgoingRequests", requestService.getOutgoingRequests(user));
+        model.addAttribute("incomingRequests", requestService.getIncomingRequests(user));
         model.addAttribute("user", user);
         return "requests";
     }
 
     @PostMapping("/requests/cancel")
     public String cancelRequest(@RequestParam Long requestId) {
-        Request request = requestRepository.findById(requestId).orElseThrow();
-        RequestStatus status = requestStatusRepository.findById(7L).orElseThrow();
-        request.setStatus(status);
-        requestRepository.save(request);
+        requestService.updateRequestStatus(requestId, 7L); // Статус "Отменена"
         return "redirect:/requests";
     }
 
@@ -67,72 +46,47 @@ public class RequestController {
     public String approveRequest(@RequestParam Long requestId,
                                  @RequestParam(value = "confirmed", defaultValue = "false") boolean confirmed,
                                  Model model) {
-        Request request = requestRepository.findById(requestId).orElseThrow();
         CustomUserDetails userDetails = (CustomUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         User user = userDetails.getUser();
 
         if (!confirmed) {
-            // Если не подтверждено, возвращаем страницу заявок
-            List<Request> outgoingRequests = requestRepository.findByHolder(user);
-            List<Request> incomingRequests = requestRepository.findById(requestId)
-                    .map(List::of)
-                    .orElse(List.of());
-            model.addAttribute("outgoingRequests", outgoingRequests);
-            model.addAttribute("incomingRequests", incomingRequests);
+            model.addAttribute("outgoingRequests", requestService.getOutgoingRequests(user));
+            model.addAttribute("incomingRequests", requestService.getIncomingRequests(user));
             model.addAttribute("user", user);
             return "requests";
         }
 
-        RequestStatus status = requestStatusRepository.findById(2L).orElseThrow();
-        request.setStatus(status);
-        requestRepository.save(request);
+        requestService.updateRequestStatus(requestId, 2L); // Статус "Одобрена"
         return "redirect:/requests";
     }
 
     @PostMapping("/requests/confirmReceipt")
     public String confirmReceipt(@RequestParam Long requestId) {
-        Request request = requestRepository.findById(requestId).orElseThrow();
-        RequestStatus status = requestStatusRepository.findById(3L).orElseThrow(); // Статус: "Вещь в пользовании"
-        request.setStatus(status);
-        requestRepository.save(request);
+        requestService.updateRequestStatus(requestId, 3L); // Статус "Вещь в пользовании"
         return "redirect:/requests";
     }
 
     @PostMapping("/requests/makeReturn")
     public String makeReturn(@RequestParam Long requestId) {
-        Request request = requestRepository.findById(requestId).orElseThrow();
-        RequestStatus status = requestStatusRepository.findById(4L).orElseThrow(); // Статус: "Вещь в пользовании"
-        request.setStatus(status);
-        requestRepository.save(request);
+        requestService.updateRequestStatus(requestId, 4L); // Статус "Ожидает возврат вещи"
         return "redirect:/requests";
     }
 
     @PostMapping("/requests/requestReturn")
     public String requestReturn(@RequestParam Long requestId) {
-        Request request = requestRepository.findById(requestId).orElseThrow();
-        RequestStatus status = requestStatusRepository.findById(4L).orElseThrow(); // "Ожидает возврат вещи"
-        request.setStatus(status);
-        requestRepository.save(request);
+        requestService.updateRequestStatus(requestId, 4L); // Статус "Ожидает возврат вещи"
         return "redirect:/requests";
     }
 
     @PostMapping("/requests/confirmReturn")
     public String confirmReturn(@RequestParam Long requestId) {
-        Request request = requestRepository.findById(requestId).orElseThrow();
-        RequestStatus status = requestStatusRepository.findById(5L).orElseThrow(); // "Заявка выполнена. Вещь у владельца"
-        request.setStatus(status);
-        requestRepository.save(request);
+        requestService.updateRequestStatus(requestId, 5L); // Статус "Заявка выполнена"
         return "redirect:/requests";
     }
 
-
-
     @PostMapping("/requests/reject")
     public String rejectRequest(@RequestParam Long requestId) {
-        Request request = requestRepository.findById(requestId).orElseThrow();
-        RequestStatus status = requestStatusRepository.findById(6L).orElseThrow();
-        request.setStatus(status);
-        requestRepository.save(request);
+        requestService.updateRequestStatus(requestId, 6L); // Статус "Отклонена"
         return "redirect:/requests";
     }
 

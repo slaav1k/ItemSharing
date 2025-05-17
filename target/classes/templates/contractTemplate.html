@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Договор аренды</title>
+    <style>
+        .contract-content {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+        }
+        .contract-content h2 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .contract-content p {
+            margin: 10px 0;
+        }
+        .contract-content strong {
+            color: #000;
+        }
+        .contract-content .section {
+            margin-bottom: 20px;
+        }
+        .contract-content .signature {
+            margin-top: 30px;
+            display: flex;
+            justify-content: space-between;
+        }
+        .contract-content .signature div {
+            width: 45%;
+            text-align: center;
+        }
+        .contract-content .signature div p {
+            border-top: 1px solid #000;
+            padding-top: 10px;
+        }
+    </style>
+</head>
+<body>
+<div class="contract-content">
+    <h2>Договор аренды</h2>
+    <p><strong>Город:</strong> <span th:text="${item.address.split(',')[0].trim()}">Город</span></p>
+    <p><strong>Дата заключения:</strong> <span th:text="${contractDate}">Дата</span></p>
+
+    <div class="section">
+        <h4>Стороны договора</h4>
+        <p><strong>Арендодатель:</strong></p>
+        <p>ФИО: <span th:text="${owner.fullName}">ФИО владельца</span></p>
+        <p>Паспорт: <span th:text="${owner.passportNum}">Номер паспорта</span></p>
+        <p>Телефон: <span th:text="${owner.phone}">Телефон</span></p>
+        <p>Email: <span th:text="${owner.email}">Email</span></p>
+        <p><strong>Арендатор:</strong></p>
+        <p>ФИО: <span th:text="${renter.fullName}">ФИО арендатора</span></p>
+        <p>Паспорт: <span th:text="${renter.passportNum}">Номер паспорта</span></p>
+        <p>Телефон: <span th:text="${renter.phone}">Телефон</span></p>
+        <p>Email: <span th:text="${renter.email}">Email</span></p>
+    </div>
+
+    <div class="section">
+        <h4>Предмет договора</h4>
+        <p><strong>Наименование:</strong> <span th:text="${item.name}">Наименование вещи</span></p>
+        <p><strong>Описание:</strong> <span th:text="${item.description}">Описание вещи</span></p>
+        <p><strong>Категория:</strong> <span th:text="${item.category.name}">Категория</span></p>
+        <p><strong>Адрес:</strong> <span th:text="${item.address}">Адрес</span></p>
+        <p><strong>Период аренды:</strong> с <span th:text="${startDate}">Начальная дата</span> по <span th:text="${endDate}">Конечная дата</span></p>
+    </div>
+
+    <div class="section">
+        <h4>Условия договора</h4>
+        <p>1. Арендодатель предоставляет Арендатору указанную вещь во временное пользование на период, указанный в договоре.</p>
+        <p>2. Арендатор обязуется использовать вещь в соответствии с её назначением и вернуть в надлежащем состоянии.</p>
+        <p>3. Арендодатель подтверждает, что вещь находится в исправном состоянии на момент передачи.</p>
+        <p>4. Арендатор несёт ответственность за ущерб, причинённый вещи в период аренды.</p>
+        <p>5. Договор вступает в силу с момента подписания сторонами.</p>
+    </div>
+
+    <div class="signature">
+        <div>
+            <p><strong>Арендодатель</strong></p>
+            <p>____________________</p>
+            <p th:text="${owner.fullName}">ФИО владельца</p>
+        </div>
+        <div>
+            <p><strong>Арендатор</strong></p>
+            <p>____________________</p>
+            <p th:text="${renter.fullName}">ФИО арендатора</p>
+        </div>
+    </div>
+</div>
+</body>
+</html>
