@@ -21,8 +21,8 @@ DROP TABLE IF EXISTS "model";
 CREATE TABLE "users" (
     "passport_num" BIGINT NOT NULL,
     "full_name" VARCHAR(255) NOT NULL,
-    "phone" CHAR(11) NOT NULL,
-    "email" VARCHAR(50) NOT NULL,
+    "phone" CHAR(11) NOT NULL UNIQUE,
+    "email" VARCHAR(50) NOT NULL UNIQUE,
 	"password" VARCHAR(255) NOT NULL,
     "address" VARCHAR(255) NOT NULL,
     PRIMARY KEY("passport_num")
