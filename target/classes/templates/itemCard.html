@@ -119,7 +119,7 @@
                 <div class="modal-dialog">
                     <div class="modal-content">
                         <div class="modal-header">
-                            <h5 class="modal-title" id="requestModalLabel">Оформить заявку на бронирование</h5>
+                            <h5 class="modal-title" id="requestModalLabel">Оформить заявку на пользование</h5>
                             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
                         </div>
                         <div class="modal-body">
@@ -187,7 +187,7 @@
                                         <strong>Конечная дата:</strong> <span id="contractEndDate"></span>
                                     </p>
                                     <p>
-                                        Арендатор обязуется использовать предмет пользования в соответствии с его назначением и вернуть в надлежащем состоянии по истечении срока пользования.
+                                        Временный пользователь обязуется использовать предмет пользования в соответствии с его назначением и вернуть в надлежащем состоянии по истечении срока пользования.
                                     </p>
                                 </div>
                                 <input type="hidden" id="formStartDate" name="startDate">
@@ -308,11 +308,30 @@
         const startDate = document.getElementById('startDate').value;
         const endDate = document.getElementById('endDate').value;
 
+        // Проверка на отсутствие дат
         if (!startDate || !endDate) {
             document.getElementById('dateError').style.display = 'block';
+            document.getElementById('dateError').textContent = 'Пожалуйста, выберите начальную и конечную даты.';
             return;
         }
 
+        // Проверка на конфликтующие даты
+        const bookedDates = /*[[${bookedDates}]]*/ [];
+        const selectedDates = [];
+        const start = new Date(startDate);
+        const end = new Date(endDate);
+        for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+            selectedDates.push(new Date(d).toISOString().split('T')[0]);
+        }
+
+        const conflict = bookedDates.some(date => selectedDates.includes(date));
+        if (conflict) {
+            document.getElementById('dateError').style.display = 'block';
+            document.getElementById('dateError').textContent = 'Вы выбрали уже забронированные даты. Пожалуйста, выберите другие.';
+            return;
+        }
+
+        // Если всё в порядке, заполняем данные и открываем модальное окно договора
         document.getElementById('contractStartDate').textContent = startDate;
         document.getElementById('contractEndDate').textContent = endDate;
         document.getElementById('formStartDate').value = startDate;

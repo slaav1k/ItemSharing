@@ -106,10 +106,15 @@
         }
         .city-filter-form {
             margin-left: 10px;
-            margin-right: 10px;
         }
         .city-filter-form select {
-            width: 200px;
+            width: 150px;
+        }
+        .search-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-grow: 1;
         }
     </style>
 </head>
@@ -133,7 +138,7 @@
             </div>
         </form>
 
-        <div class="flex-grow-1 d-flex justify-content-center">
+        <div class="search-container">
             <form class="search-form" id="searchForm" method="get" th:action="@{/}" onsubmit="performSearch(event); return false;">
                 <div class="input-group">
                     <input type="text" name="search" class="form-control search-input" placeholder="Поиск вещей..." th:value="${search}">
@@ -155,19 +160,19 @@
                     </span>
                 </div>
             </form>
-        </div>
 
-        <form class="city-filter-form" method="get" th:action="@{/}">
-            <select name="city" id="cityFilter" class="form-control" onchange="this.form.submit()">
-                <option value="" th:selected="${city == null or city == ''}">Все города</option>
-                <option th:each="cityOption : ${cities}" th:value="${cityOption}" th:text="${cityOption}"
-                        th:selected="${city != null and city != '' and cityOption == city}"></option>
-            </select>
-            <input type="hidden" name="category" th:value="${category}" />
-            <input type="hidden" name="search" th:value="${search}" />
-            <input type="hidden" name="searchIds" th:value="${searchIds}" />
-            <input th:each="filter : ${filters}" th:name="${filter.key}" th:value="${filter.value}" type="hidden" />
-        </form>
+            <form class="city-filter-form" method="get" th:action="@{/}">
+                <select name="city" id="cityFilter" class="form-control" onchange="this.form.submit()">
+                    <option value="" th:selected="${city == null or city == ''}">Все города</option>
+                    <option th:each="cityOption : ${cities}" th:value="${cityOption}" th:text="${cityOption}"
+                            th:selected="${city != null and city != '' and cityOption == city}"></option>
+                </select>
+                <input type="hidden" name="category" th:value="${category}" />
+                <input type="hidden" name="search" th:value="${search}" />
+                <input type="hidden" name="searchIds" th:value="${searchIds}" />
+                <input th:each="filter : ${filters}" th:name="${filter.key}" th:value="${filter.value}" type="hidden" />
+            </form>
+        </div>
 
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
