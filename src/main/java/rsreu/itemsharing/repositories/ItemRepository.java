@@ -8,4 +8,5 @@ import java.util.List;
 
 public interface ItemRepository extends JpaRepository<Item, String> {
     List<Item> findByCategory(Category category);
+    List<Item> findAllByOrderByUpdatedAtDesc();
 }

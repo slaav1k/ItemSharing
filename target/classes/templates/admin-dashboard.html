@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Панель администратора</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        .container {
+            margin-top: 20px;
+        }
+        .table th, .table td {
+            vertical-align: middle;
+        }
+        .btn-block, .btn-unblock {
+            width: 140px; /* Увеличена ширина кнопок */
+            white-space: nowrap; /* Предотвращает перенос текста */
+            padding: 6px 12px; /* Улучшен отступ для текста */
+            font-size: 0.9rem; /* Уменьшен размер шрифта для компактности */
+        }
+        .blocked {
+            color: red;
+            font-weight: bold;
+        }
+        .unblocked {
+            color: green;
+            font-weight: bold;
+        }
+        .item-link {
+            color: #007bff;
+            text-decoration: none;
+        }
+        .item-link:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1 class="mb-4">Панель администратора</h1>
+    <a th:href="@{/}" class="btn btn-secondary mb-3">На главную</a>
+    <form th:action="@{/logout}" method="post" class="d-inline">
+        <button type="submit" class="btn btn-danger mb-3">Выйти</button>
+    </form>
+
+    <h2>Последние измененные вещи</h2>
+    <table class="table table-bordered table-striped">
+        <thead>
+        <tr>
+            <th>Название</th>
+            <th>Владелец</th>
+            <th>Дата создания</th>
+            <th>Дата изменения</th>
+            <th>Статус</th>
+            <th>Действия</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="item : ${items}">
+            <td>
+                <a th:href="@{/item/{id}(id=${item.itemId})}" class="item-link" th:text="${item.name}"></a>
+            </td>
+            <td th:text="${item.owner.fullName}"></td>
+            <td th:text="${#temporals.format(item.createdAt, 'dd.MM.yyyy HH:mm')}"></td>
+            <td th:text="${#temporals.format(item.updatedAt, 'dd.MM.yyyy HH:mm')}"></td>
+            <td>
+                <span th:class="${item.blocked} ? 'blocked' : 'unblocked'"
+                      th:text="${item.blocked} ? 'Заблокировано' : 'Активно'"></span>
+            </td>
+            <td>
+                <form th:if="${!item.blocked}" th:action="@{/admin/item/block}" method="post" class="d-inline">
+                    <input type="hidden" name="itemId" th:value="${item.itemId}">
+                    <button type="submit" class="btn btn-danger btn-block">Заблокировать</button>
+                </form>
+                <form th:if="${item.blocked}" th:action="@{/admin/item/unblock}" method="post" class="d-inline">
+                    <input type="hidden" name="itemId" th:value="${item.itemId}">
+                    <button type="submit" class="btn btn-success btn-unblock">Разблокировать</button>
+                </form>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

@@ -3,6 +3,7 @@ package rsreu.itemsharing.entities;
 import jakarta.persistence.*;
 import rsreu.itemsharing.infrastructure.ItemEntityListener;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -58,12 +59,24 @@ public class Item {
     @Column(name = "release_year", nullable = false)
     private long releaseYear;
 
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private LocalDateTime createdAt;
+
+    @Column(name = "updated_at", nullable = false)
+    private LocalDateTime updatedAt;
+
+    @Column(name = "is_blocked", nullable = false)
+    private boolean isBlocked;
+
     @OneToMany(mappedBy = "item")
     private List<ItemPhotoLink> itemPhotoLinks = new ArrayList<>();
 
     // Конструктор по умолчанию
     public Item() {
         this.itemId = UUID.randomUUID().toString();
+        this.createdAt = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now();
+        this.isBlocked = false;
     }
 
     // Полный конструктор
@@ -83,6 +96,9 @@ public class Item {
         this.maker = maker;
         this.model = model;
         this.releaseYear = releaseYear;
+        this.createdAt = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now();
+        this.isBlocked = false;
     }
 
     // Геттеры и сеттеры
@@ -188,6 +204,30 @@ public class Item {
 
     public void setReleaseYear(long releaseYear) {
         this.releaseYear = releaseYear;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(LocalDateTime updatedAt) {
+        this.updatedAt = updatedAt;
+    }
+
+    public boolean isBlocked() {
+        return isBlocked;
+    }
+
+    public void setBlocked(boolean blocked) {
+        this.isBlocked = blocked;
     }
 
     public List<ItemPhotoLink> getItemPhotoLinks() {

@@ -2,6 +2,8 @@ package rsreu.itemsharing.infrastructure;
 
 import jakarta.persistence.PostPersist;
 import jakarta.persistence.PostUpdate;
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.PreUpdate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import rsreu.itemsharing.entities.Attribute;
@@ -12,6 +14,7 @@ import rsreu.itemsharing.repositories.AttributeRepository;
 import rsreu.itemsharing.repositories.ItemAttributeRepository;
 import rsreu.itemsharing.repositories.ItemSearchRepository;
 
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -29,6 +32,21 @@ public class ItemEntityListener {
         itemAttributeRepository = itemAttrRepo;
         attributeRepository = attrRepo;
     }
+
+    @PrePersist
+    public void onPrePersist(Item item) {
+        LocalDateTime now = LocalDateTime.now();
+        item.setCreatedAt(now);
+        item.setUpdatedAt(now);
+        item.setBlocked(false);
+    }
+
+    @PreUpdate
+    public void onPreUpdate(Item item) {
+        item.setUpdatedAt(LocalDateTime.now());
+    }
+
+
 
     @PostPersist
     @PostUpdate
