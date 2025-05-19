@@ -112,133 +112,137 @@
             <p class="card-text"><strong>Доступность:</strong>
                 <span th:text="${item.isAvailable ? 'Доступно' : 'Недоступно'}">Доступность</span>
             </p>
-            <a href="javascript:void(0);" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#requestModal">Оформить</a>
 
-            <!-- Request Modal -->
-            <div class="modal fade" id="requestModal" tabindex="-1" aria-labelledby="requestModalLabel" aria-hidden="true">
-                <div class="modal-dialog">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title" id="requestModalLabel">Оформить заявку на пользование</h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
-                        </div>
-                        <div class="modal-body">
-                            <div th:if="${error}" class="alert alert-danger" role="alert">
-                                <span th:text="${error}"></span>
-                            </div>
-                            <div class="mb-3">
-                                <label for="startDate" class="form-label">Начальная дата</label>
-                                <input type="date" id="startDate" name="startDate" class="form-control" required min="2025-03-01">
-                            </div>
-                            <div class="mb-3">
-                                <label for="endDate" class="form-label">Конечная дата</label>
-                                <input type="date" id="endDate" name="endDate" class="form-control" required min="2025-03-01">
-                            </div>
-                            <div class="alert alert-danger" id="dateError" style="display: none;">
-                                Вы выбрали уже забронированные даты. Пожалуйста, выберите другие.
-                            </div>
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
-                            <button type="button" class="btn btn-primary" onclick="showContractModal()">Продолжить</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            <!-- Показывать кнопки только если пользователь НЕ владелец -->
+            <div th:if="${#authentication.principal == null || #authentication.principal.user.passportNum != item.owner.passportNum}">
+                <a href="javascript:void(0);" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#requestModal">Оформить</a>
 
-            <!-- Contract Modal -->
-            <div class="modal fade" id="contractModal" tabindex="-1" aria-labelledby="contractModalLabel" aria-hidden="true">
-                <div class="modal-dialog modal-lg">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title" id="contractModalLabel">Договор пользования</h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
-                        </div>
-                        <form action="#" th:action="@{'/item/' + ${item.itemId} + '/request'}" method="post">
+                <!-- Request Modal -->
+                <div class="modal fade" id="requestModal" tabindex="-1" aria-labelledby="requestModalLabel" aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="requestModalLabel">Оформить заявку на пользование</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
+                            </div>
                             <div class="modal-body">
-                                <div class="contract-text">
-                                    <h4>Договор пользования</h4>
-                                    <p>Настоящий договор пользования (далее — «Договор») заключен между:</p>
-                                    <h5>Временный пользователь:</h5>
-                                    <p>
-                                        <strong>Имя:</strong> <span th:text="${#authentication.principal.user.fullName}">Имя арендатора</span><br>
-                                        <strong>Паспорт:</strong> <span th:text="${#authentication.principal.user.passportNum}">Паспорт</span><br>
-                                        <strong>Адрес:</strong> <span th:text="${#authentication.principal.user.address}">Адрес</span><br>
-                                        <strong>Телефон:</strong> <span th:text="${#authentication.principal.user.phone}">Телефон</span><br>
-                                        <strong>Email:</strong> <span th:text="${#authentication.principal.user.email}">Email</span>
-                                    </p>
-                                    <h5>Владелец вещи:</h5>
-                                    <p>
-                                        <strong>Имя:</strong> <span th:text="${item.owner.fullName}">Имя владельца</span><br>
-                                        <strong>Паспорт:</strong> <span th:text="${item.owner.passportNum}">Паспорт</span><br>
-                                        <strong>Адрес:</strong> <span th:text="${item.owner.address}">Адрес</span><br>
-                                        <strong>Телефон:</strong> <span th:text="${item.owner.phone}">Телефон</span><br>
-                                        <strong>Email:</strong> <span th:text="${item.owner.email}">Email</span>
-                                    </p>
-                                    <h5>Предмет договора:</h5>
-                                    <p>
-                                        <strong>Наименование:</strong> <span th:text="${item.name}">Название вещи</span><br>
-                                        <strong>Описание:</strong> <span th:text="${item.description}">Описание</span><br>
-                                        <strong>Адрес:</strong> <span th:text="${item.address}">Адрес</span>
-                                    </p>
-                                    <h5>Срок пользования:</h5>
-                                    <p>
-                                        <strong>Начальная дата:</strong> <span id="contractStartDate"></span><br>
-                                        <strong>Конечная дата:</strong> <span id="contractEndDate"></span>
-                                    </p>
-                                    <p>
-                                        Временный пользователь обязуется использовать предмет пользования в соответствии с его назначением и вернуть в надлежащем состоянии по истечении срока пользования.
-                                    </p>
-                                </div>
-                                <input type="hidden" id="formStartDate" name="startDate">
-                                <input type="hidden" id="formEndDate" name="endDate">
-                                <input type="hidden" name="confirmed" value="true">
-                            </div>
-                            <div class="modal-footer">
-                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отменить</button>
-                                <button type="submit" class="btn btn-primary">Подписать договор</button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            </div>
-
-            <a href="#" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#reviewModal">Оценить вещь</a>
-
-            <!-- Review Modal -->
-            <div class="modal fade" id="reviewModal" tabindex="-1" aria-labelledby="reviewModalLabel" aria-hidden="true">
-                <div class="modal-dialog">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title" id="reviewModalLabel">Оценить вещь</h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
-                        </div>
-                        <form action="#" th:action="@{'/item/' + ${item.itemId} + '/review'}" method="post" enctype="multipart/form-data">
-                            <div class="modal-body">
-                                <div class="mb-3">
-                                    <label for="comment" class="form-label">Комментарий</label>
-                                    <textarea id="comment" name="comment" class="form-control" rows="3" required></textarea>
+                                <div th:if="${error}" class="alert alert-danger" role="alert">
+                                    <span th:text="${error}"></span>
                                 </div>
                                 <div class="mb-3">
-                                    <label for="score" class="form-label">Оценка</label>
-                                    <select id="score" name="score" class="form-select" required>
-                                        <option value="5">5</option>
-                                        <option value="4">4</option>
-                                        <option value="3">3</option>
-                                        <option value="2">2</option>
-                                        <option value="1">1</option>
-                                    </select>
+                                    <label for="startDate" class="form-label">Начальная дата</label>
+                                    <input type="date" id="startDate" name="startDate" class="form-control" required min="2025-03-01">
                                 </div>
                                 <div class="mb-3">
-                                    <label for="photo" class="form-label">Фото</label>
-                                    <input type="file" name="photo" class="form-control" multiple>
+                                    <label for="endDate" class="form-label">Конечная дата</label>
+                                    <input type="date" id="endDate" name="endDate" class="form-control" required min="2025-03-01">
+                                </div>
+                                <div class="alert alert-danger" id="dateError" style="display: none;">
+                                    Вы выбрали уже забронированные даты. Пожалуйста, выберите другие.
                                 </div>
                             </div>
                             <div class="modal-footer">
                                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
-                                <button type="submit" class="btn btn-primary">Отправить отзыв</button>
+                                <button type="button" class="btn btn-primary" onclick="showContractModal()">Продолжить</button>
                             </div>
-                        </form>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Contract Modal -->
+                <div class="modal fade" id="contractModal" tabindex="-1" aria-labelledby="contractModalLabel" aria-hidden="true">
+                    <div class="modal-dialog modal-lg">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="contractModalLabel">Договор пользования</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
+                            </div>
+                            <form action="#" th:action="@{'/item/' + ${item.itemId} + '/request'}" method="post">
+                                <div class="modal-body">
+                                    <div class="contract-text">
+                                        <h4>Договор пользования</h4>
+                                        <p>Настоящий договор пользования (далее — «Договор») заключен между:</p>
+                                        <h5>Временный пользователь:</h5>
+                                        <p>
+                                            <strong>Имя:</strong> <span th:text="${#authentication.principal.user.fullName}">Имя арендатора</span><br>
+                                            <strong>Паспорт:</strong> <span th:text="${#authentication.principal.user.passportNum}">Паспорт</span><br>
+                                            <strong>Адрес:</strong> <span th:text="${#authentication.principal.user.address}">Адрес</span><br>
+                                            <strong>Телефон:</strong> <span th:text="${#authentication.principal.user.phone}">Телефон</span><br>
+                                            <strong>Email:</strong> <span th:text="${#authentication.principal.user.email}">Email</span>
+                                        </p>
+                                        <h5>Владелец вещи:</h5>
+                                        <p>
+                                            <strong>Имя:</strong> <span th:text="${item.owner.fullName}">Имя владельца</span><br>
+                                            <strong>Паспорт:</strong> <span th:text="${item.owner.passportNum}">Паспорт</span><br>
+                                            <strong>Адрес:</strong> <span th:text="${item.owner.address}">Адрес</span><br>
+                                            <strong>Телефон:</strong> <span th:text="${item.owner.phone}">Телефон</span><br>
+                                            <strong>Email:</strong> <span th:text="${item.owner.email}">Email</span>
+                                        </p>
+                                        <h5>Предмет договора:</h5>
+                                        <p>
+                                            <strong>Наименование:</strong> <span th:text="${item.name}">Название вещи</span><br>
+                                            <strong>Описание:</strong> <span th:text="${item.description}">Описание</span><br>
+                                            <strong>Адрес:</strong> <span th:text="${item.address}">Адрес</span>
+                                        </p>
+                                        <h5>Срок пользования:</h5>
+                                        <p>
+                                            <strong>Начальная дата:</strong> <span id="contractStartDate"></span><br>
+                                            <strong>Конечная дата:</strong> <span id="contractEndDate"></span>
+                                        </p>
+                                        <p>
+                                            Временный пользователь обязуется использовать предмет пользования в соответствии с его назначением и вернуть в надлежащем состоянии по истечении срока пользования.
+                                        </p>
+                                    </div>
+                                    <input type="hidden" id="formStartDate" name="startDate">
+                                    <input type="hidden" id="formEndDate" name="endDate">
+                                    <input type="hidden" name="confirmed" value="true">
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отменить</button>
+                                    <button type="submit" class="btn btn-primary">Подписать договор</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <a href="#" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#reviewModal">Оценить вещь</a>
+
+                <!-- Review Modal -->
+                <div class="modal fade" id="reviewModal" tabindex="-1" aria-labelledby="reviewModalLabel" aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="reviewModalLabel">Оценить вещь</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
+                            </div>
+                            <form action="#" th:action="@{'/item/' + ${item.itemId} + '/review'}" method="post" enctype="multipart/form-data">
+                                <div class="modal-body">
+                                    <div class="mb-3">
+                                        <label for="comment" class="form-label">Комментарий</label>
+                                        <textarea id="comment" name="comment" class="form-control" rows="3" required></textarea>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="score" class="form-label">Оценка</label>
+                                        <select id="score" name="score" class="form-select" required>
+                                            <option value="5">5</option>
+                                            <option value="4">4</option>
+                                            <option value="3">3</option>
+                                            <option value="2">2</option>
+                                            <option value="1">1</option>
+                                        </select>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="photo" class="form-label">Фото</label>
+                                        <input type="file" name="photo" class="form-control" multiple>
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
+                                    <button type="submit" class="btn btn-primary">Отправить отзыв</button>
+                                </div>
+                            </form>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -291,7 +295,7 @@
                     <img id="reviewModalImage" src="" class="img-fluid" alt="Фото отзыва">
                 </div>
             </div>
-        </ personally>
+        </div>
     </div>
 </div>
 

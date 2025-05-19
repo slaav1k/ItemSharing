@@ -35,7 +35,8 @@ public class ItemDocument {
     @Field(type = FieldType.Text, analyzer = "russian")
     private String model;
 
-    @Field(type = FieldType.Text, analyzer = "russian")
+//    @Field(type = FieldType.Text, analyzer = "russian")
+    @Field(type = FieldType.Object)
     private Map<String, String> customAttributes;
 
     // Геттеры и сеттеры
