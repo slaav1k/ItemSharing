@@ -23,8 +23,9 @@ CREATE TABLE "users" (
     "full_name" VARCHAR(255) NOT NULL,
     "phone" CHAR(11) NOT NULL UNIQUE,
     "email" VARCHAR(50) NOT NULL UNIQUE,
-	"password" VARCHAR(255) NOT NULL,
+    "password" VARCHAR(255) NOT NULL,
     "address" VARCHAR(255) NOT NULL,
+    "role" VARCHAR(50) NOT NULL,
     PRIMARY KEY("passport_num")
 );
 
@@ -78,6 +79,9 @@ CREATE TABLE "item" (
     "maker" BIGINT NOT NULL,
     "model" BIGINT NOT NULL,
     "release_year" BIGINT NOT NULL,
+	"created_at" TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "is_blocked" BOOLEAN NOT NULL DEFAULT FALSE,
     PRIMARY KEY("item_id"),
     FOREIGN KEY("owner") REFERENCES "users"("passport_num"),
     FOREIGN KEY("category") REFERENCES "category"("category_id"),

@@ -85,3 +85,8 @@ INSERT INTO request (holder, item, start_date, end_date, status) VALUES
 
 select * from item
 select * from request
+
+ALTER TABLE item
+    ADD COLUMN created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    ADD COLUMN updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    ADD COLUMN is_blocked BOOLEAN NOT NULL DEFAULT FALSE;
