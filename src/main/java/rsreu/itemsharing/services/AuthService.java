@@ -44,6 +44,7 @@ public class AuthService {
             addressBuilder.append(", кв. ").append(apartment);
         }
         user.setAddress(addressBuilder.toString());
+        user.setRole("ROLE_USER");
 
         // Кодирование пароля и сохранение
         user.setPassword(passwordEncoder.encode(user.getPassword()));

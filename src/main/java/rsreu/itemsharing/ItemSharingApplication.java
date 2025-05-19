@@ -29,7 +29,7 @@ public class ItemSharingApplication {
     public DataSource getDataSource() {
         return DataSourceBuilder.create()
                 .type(org.postgresql.ds.PGSimpleDataSource.class)
-                .url("jdbc:postgresql://localhost:5432/ItemSharingBD")
+                .url("jdbc:postgresql://localhost:5433/ItemSharingBD")
                 .username("postgres")
                 .password("123")
                 .build();

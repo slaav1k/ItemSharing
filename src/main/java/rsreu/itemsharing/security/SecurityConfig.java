@@ -39,7 +39,8 @@ public class SecurityConfig {
 //                .csrf(AbstractHttpConfigurer::disable
 //                )
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/login", "/register", "/admin/index").permitAll()
+                        .requestMatchers("/login", "/register").permitAll()
+                        .requestMatchers("/admin/**").hasRole("ADMIN")
                         .anyRequest().authenticated()
                 )
                 .formLogin(login -> login
@@ -52,6 +53,8 @@ public class SecurityConfig {
                         .logoutSuccessUrl("/login")
                         .permitAll()
                 )
+                .exceptionHandling(ex -> ex
+                                .accessDeniedPage("/access-denied"))
 //                .userDetailsService(userDetailsService)
         ;
         return http.build();

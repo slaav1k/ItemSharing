@@ -29,16 +29,20 @@ public class User {
     @Column(name = "address", nullable = false)
     private String address;
 
+    @Column(name = "role", nullable = false)
+    private String role;
+
     public User() {
     }
 
-    public User(long passportNum, String fullName, String phone, String email, String password, String address) {
+    public User(long passportNum, String fullName, String phone, String email, String password, String address, String role) {
         this.passportNum = passportNum;
         this.fullName = fullName;
         this.phone = phone;
         this.email = email;
         this.password = password;
         this.address = address;
+        this.role = role;
     }
 
     @Override
@@ -52,6 +56,7 @@ public class User {
     @OneToMany(mappedBy = "reviewed", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Review> reviewsReceived = new ArrayList<>();
 
+    // Геттеры и сеттеры для существующих полей
     public List<Item> getItems() {
         return items;
     }
@@ -67,7 +72,6 @@ public class User {
     public void setReviewsReceived(List<Review> reviewsReceived) {
         this.reviewsReceived = reviewsReceived;
     }
-
 
     public String getPassword() {
         return password;
@@ -115,5 +119,13 @@ public class User {
 
     public void setAddress(String address) {
         this.address = address;
+    }
+
+    public String getRole() {
+        return role;
+    }
+
+    public void setRole(String role) {
+        this.role = role;
     }
 }
