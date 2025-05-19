@@ -84,6 +84,11 @@
       color: red;
     }
 
+    .item-blocked {
+      font-weight: bold;
+      color: red;
+    }
+
     /* Оформление отзывов */
     .review-card {
       border: 1px solid #ddd;
@@ -249,9 +254,9 @@
               <span th:text="${#strings.length(i.address) > 25 ? #strings.substring(i.address, 0, 25) + '...' : i.address}">Адрес</span>
             </div>
 
-            <div th:classappend="${i.isAvailable} ? 'item-availability' : 'item-unavailable'"
-                 th:text="${i.isAvailable} ? 'Доступно' : 'Недоступно'">
-              Доступно
+            <div th:classappend="${i.isBlocked} ? 'item-blocked' : (${i.isAvailable} ? 'item-availability' : 'item-unavailable')"
+                 th:text="${i.isBlocked} ? 'ЗАБЛОКИРОВАНО' : (${i.isAvailable} ? 'Доступно' : 'Недоступно')">
+              Статус
             </div>
 
             <div th:if="${user.passportNum.toString() == #authentication.principal.username}">

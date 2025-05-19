@@ -9,4 +9,8 @@ import java.util.List;
 public interface ItemRepository extends JpaRepository<Item, String> {
     List<Item> findByCategory(Category category);
     List<Item> findAllByOrderByUpdatedAtDesc();
+    List<Item> findAllByIsBlockedFalse();
+    List<Item> findByCategoryAndIsBlockedFalse(Category category);
+    List<Item> findAllByItemIdInAndIsBlockedFalse(List<String> ids);
+
 }

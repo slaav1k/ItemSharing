@@ -167,6 +167,7 @@ public class ItemService {
         item.setAddress(String.format("%s, %s, %s", city, street, house));
         item.setWeight(updatedItem.getWeight());
         item.setReleaseYear(updatedItem.getReleaseYear());
+        item.setBlocked(false);
 
         // Валидация и обновление связанных сущностей
         if (colorId == null || colorRepository.findById(colorId).isEmpty()) {

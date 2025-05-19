@@ -184,7 +184,8 @@ public class CatalogService {
     private List<Item> fetchItems(Long category, String search, List<String> searchItemIds) {
         List<Item> items;
         if (searchItemIds != null && !searchItemIds.isEmpty()) {
-            items = itemRepository.findAllById(searchItemIds);
+//            items = itemRepository.findAllById(searchItemIds);
+            items = itemRepository.findAllByItemIdInAndIsBlockedFalse(searchItemIds);
             System.out.println("Items fetched by search IDs: " + items.size());
         } else if (search != null && !search.trim().isEmpty()) {
             items = Collections.emptyList();
@@ -193,14 +194,17 @@ public class CatalogService {
             if (category != null) {
                 Category categoryEntity = categoryRepository.findById(category).orElse(null);
                 if (categoryEntity != null) {
-                    items = itemRepository.findByCategory(categoryEntity);
+//                    items = itemRepository.findByCategory(categoryEntity);
+                    items = itemRepository.findByCategoryAndIsBlockedFalse(categoryEntity);
                     System.out.println("Items fetched by category: " + items.size());
                 } else {
-                    items = itemRepository.findAll();
+                    items = itemRepository.findAllByIsBlockedFalse();
+//                    items = itemRepository.findAll();
                     System.out.println("All items fetched (no category): " + items.size());
                 }
             } else {
-                items = itemRepository.findAll();
+                items = itemRepository.findAllByIsBlockedFalse();
+//                items = itemRepository.findAll();
                 System.out.println("All items fetched (no search, no category): " + items.size());
             }
         }
